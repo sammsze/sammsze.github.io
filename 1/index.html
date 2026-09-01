@@ -34,23 +34,35 @@
 
     /* Section 2: Selfie Intro */
     .section-2 {
-      height: 80vh;
+      min-height: 100vh;
       background-color: #000000;
       color: #ffffff;
       display: flex;
       flex-direction: column;
       justify-content: center;
-      padding: 0 10%;
+      padding: 60px 8%;
+      gap: 30px;
+    }
+    .image-row {
+      display: flex;
+      gap: 15px;
+      width: 100%;
+    }
+    .row-img {
+      width: 20%;
+      aspect-ratio: 3 / 4;
+      object-fit: cover;
+      border-radius: 4px;
     }
     .section-2 h2 {
       font-size: clamp(3.5rem, 9vw, 7rem);
       text-transform: uppercase;
       letter-spacing: 3px;
+      line-height: 1;
     }
     .section-2 p {
       font-size: clamp(1.2rem, 3vw, 2rem);
       color: #cccccc;
-      margin-top: 10px;
     }
 
     /* Section 3: Two Column Comparison */
@@ -58,6 +70,14 @@
       min-height: 100vh;
       padding: 100px 8%;
       background-color: #ffffff;
+    }
+    .section-3-header {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 40px;
+      color: #000000;
     }
     .grid-container {
       display: grid;
@@ -72,7 +92,7 @@
     .card-img {
       width: 100%;
       aspect-ratio: 4 / 3;
-      object-fit: cover; /* Ensures image fills the area cleanly without distortion */
+      object-fit: cover;
       display: block;
     }
     .caption {
@@ -86,18 +106,27 @@
 
     /* Section 4: Dolly Zoom Full Width Hero */
     .section-4 {
-      height: 80vh;
-      background-color: #ffde00;
-      color: #ffffff;
+      position: relative;
+      height: 100vh;
+      border: 16px solid #ffde00;
+      margin: 40px;
+      overflow: hidden;
       display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 0 10%;
+      align-items: flex-end;
+    }
+    .section-4 .hero-gif {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 1;
     }
     .section-4 .overlay-text {
-      position: absolute;
-      bottom: 60px;
-      left: 60px;
+      position: relative;
+      z-index: 2;
+      padding: 60px;
       font-size: clamp(2.5rem, 7vw, 5.5rem);
       font-weight: 900;
       line-height: 1;
@@ -107,32 +136,42 @@
 
     /* Responsive Adjustments */
     @media (max-width: 768px) {
+      .image-row {
+        flex-wrap: wrap;
+      }
+      .row-img {
+        width: calc(50% - 10px);
+      }
       .section-4 {
         margin: 15px;
         border-width: 8px;
       }
       .section-4 .overlay-text {
-        bottom: 30px;
-        left: 30px;
+        padding: 30px;
       }
     }
   </style>
 </head>
 <body>
 
-  <!-- Section 1 -->
   <section class="section-1">
     <h1>PROJECT #0</h1>
   </section>
 
-  <!-- Section 2 -->
   <section class="section-2">
+    <div class="image-row">
+      <img src="selfie1.jpg" alt="Selfie 1" class="row-img">
+      <img src="selfie2.jpg" alt="Selfie 2" class="row-img">
+      <img src="selfie3.jpg" alt="Selfie 3" class="row-img">
+      <img src="selfie4.jpg" alt="Selfie 4" class="row-img">
+      <img src="selfie5.jpg" alt="Selfie 5" class="row-img">
+    </div>
     <h2>SELFIE:</h2>
     <p>the wrong way vs the right way</p>
   </section>
 
-  <!-- Section 3 -->
   <section class="section-3">
+    <h2 class="section-3-header">ARCHITECTURAL PERSPECTIVE COMPRESSION</h2>
     <div class="grid-container">
       <div class="card">
         <img src="furtherdist.jpg" alt="photo from a further distance" class="card-img">
@@ -144,17 +183,16 @@
         <img src="nearerdist.jpg" alt="photo from a nearer distance" class="card-img">
         <div class="caption">
           from a nearer distance
-          (002)
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Section 4 -->
   <section class="section-4">
-    <div class="overlay-text">
+    <img src="dolly-zoom.gif" alt="The Dolly Zoom GIF" class="hero-gif">
+    <h2 class="overlay-text">
       THE<br>DOLLY ZOOM
-    </div>
+    </h2>
   </section>
 
 </body>
