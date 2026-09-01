@@ -69,16 +69,11 @@
       flex-direction: column;
       gap: 20px;
     }
-    .img-placeholder {
-      background-color: #e0e0e0;
-      aspect-ratio: 4 / 3;
+    .card-img {
       width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #666;
-      font-weight: bold;
-      font-size: 1.1rem;
+      aspect-ratio: 4 / 3;
+      object-fit: cover; /* Ensures image fills the area cleanly without distortion */
+      display: block;
     }
     .caption {
       font-size: 1rem;
@@ -140,20 +135,15 @@
   <section class="section-3">
     <div class="grid-container">
       <div class="card">
-        <div class="img-placeholder">Image Placeholder (001)</div>
+        <img src="furtherdist.jpg" alt="photo from a further distance" class="card-img">
         <div class="caption">
-          ARCHITECTURAL<br>
-          PERSPECTIVE<br>
-          COMPRESSION<br>
-          (001)
+          from a further distance
         </div>
       </div>
       <div class="card">
-        <div class="img-placeholder">Image Placeholder (002)</div>
+        <img src="nearerdist.jpg" alt="photo from a nearer distance" class="card-img">
         <div class="caption">
-          ARCHITECTURAL<br>
-          PERSPECTIVE<br>
-          COMPRESSION<br>
+          from a nearer distance
           (002)
         </div>
       </div>
