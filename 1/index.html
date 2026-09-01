@@ -1,17 +1,153 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Project 1</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brand Strategy Presentation</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background-color: #f4f4f4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 40px;
+      padding: 40px 0;
+    }
+
+    /* Common Slide Layout */
+    .slide {
+      width: 900px;
+      height: 500px;
+      background-color: #ffffff;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+    }
+
+    /* Placeholder Styling */
+    .img-placeholder {
+      background-color: #d8d8d8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #666;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    /* Page 1 */
+    .page-1 {
+      background-color: #000;
+      color: #fff;
+      justify-content: center;
+      align-items: center;
+    }
+    .page-1 h1 {
+      font-size: 48px;
+      letter-spacing: 2px;
+    }
+
+    /* Page 2 */
+    .page-2 {
+      background-color: #000;
+      color: #fff;
+      flex-direction: column;
+      justify-content: center;
+      padding-left: 80px;
+    }
+    .page-2 h1 {
+      font-size: 64px;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+    }
+    .page-2 p {
+      font-size: 20px;
+      color: #ccc;
+      margin-top: 10px;
+    }
+
+    /* Page 3 */
+    .page-3 {
+      padding: 40px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .page-3 .card {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .page-3 .img-placeholder {
+      height: 320px;
+      width: 100%;
+    }
+    .page-3 .caption {
+      font-size: 14px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #000;
+    }
+
+    /* Page 4 */
+    .page-4 {
+      border: 12px solid #ffde00; /* Yellow border */
+      display: flex;
+      position: relative;
+    }
+    .page-4 .img-placeholder {
+      width: 100%;
+      height: 100%;
+    }
+    .page-4 .overlay-text {
+      position: absolute;
+      bottom: 40px;
+      left: 40px;
+      font-size: 48px;
+      font-weight: 900;
+      line-height: 1;
+      color: #000;
+      text-transform: uppercase;
+    }
+  </style>
 </head>
 <body>
-    <h1>Part 1: Selfie: The Wrong Way vs. The Right Way</h1>
-    <h1>Part 2: Architectural Perspective Compression</h1>
-    <h1>Part 3: The Dolly Zoom</h1>
+
+  <div class="slide page-1">
+    <h1>PROJECT #0</h1>
+  </div>
+
+  <div class="slide page-2">
+    <h1>SELFIE:</h1>
+    <p>the wrong way vs the right way</p>
+  </div>
+
+  <div class="slide page-3">
+    <div class="card">
+      <div class="img-placeholder">Image Placeholder (001)</div>
+      <div class="caption">ARCHITECTURAL PERSPECTIVE COMPRESSION (001)</div>
+    </div>
+    <div class="card">
+      <div class="img-placeholder">Image Placeholder (002)</div>
+      <div class="caption">ARCHITECTURAL PERSPECTIVE COMPRESSION (002)</div>
+    </div>
+  </div>
+
+  <div class="slide page-4">
+    <div class="img-placeholder">Full Slide Background Image</div>
+    <div class="overlay-text">
+      THE<br>DOLLY ZOOM
+    </div>
+  </div>
+
 </body>
 </html>
