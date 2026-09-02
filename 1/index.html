@@ -23,13 +23,22 @@
       background-color: #000000;
       color: #ffffff;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
+      gap: 15px;
+      text-align: center;
+      padding: 0 20px;
     }
     .section-1 h1 {
       font-size: clamp(3rem, 8vw, 6rem);
       letter-spacing: 2px;
       text-transform: uppercase;
+    }
+    .section-1 p {
+      font-size: clamp(1.2rem, 3vw, 2rem);
+      color: #cccccc;
+      letter-spacing: 1px;
     }
 
     /* Section 2 */
@@ -48,11 +57,24 @@
       gap: 15px;
       width: 100%;
     }
-    .row-img {
+    .img-card {
       width: 20%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .row-img {
+      width: 100%;
       aspect-ratio: 3 / 4;
       object-fit: cover;
       border-radius: 4px;
+    }
+    .img-caption {
+      font-size: 0.85rem;
+      color: #cccccc;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      text-align: center;
     }
     .section-2 h2 {
       font-size: clamp(3.5rem, 9vw, 7rem);
@@ -137,13 +159,17 @@
       text-transform: uppercase;
       text-align: center;
     }
+
     /* Responsive Adjustments */
     @media (max-width: 768px) {
       .image-row {
         flex-wrap: wrap;
       }
-      .row-img {
+      .img-card {
         width: calc(50% - 10px);
+      }
+      .gif-wrapper {
+        width: 100%;
       }
       .section-4 {
         margin: 15px;
@@ -159,15 +185,31 @@
 
   <section class="section-1">
     <h1>PROJECT #0</h1>
+    <p>becoming friends with your camera</p>
   </section>
 
   <section class="section-2">
     <div class="image-row">
-      <img src="7.0x.jpg" alt="7x zoom" class="row-img">
-      <img src="5.0x.jpg" alt="5x zoom" class="row-img">
-      <img src="3.0x.jpg" alt="3x zoom" class="row-img">
-      <img src="1.0x.jpg" alt="1x zoom" class="row-img">
-      <img src="0.5x.jpg" alt="0.5x zoom" class="row-img">
+      <div class="img-card">
+        <img src="7.0x.jpg" alt="7x zoom" class="row-img">
+        <span class="img-caption">7.0x Zoom</span>
+      </div>
+      <div class="img-card">
+        <img src="5.0x.jpg" alt="5x zoom" class="row-img">
+        <span class="img-caption">5.0x Zoom</span>
+      </div>
+      <div class="img-card">
+        <img src="3.0x.jpg" alt="3x zoom" class="row-img">
+        <span class="img-caption">3.0x Zoom</span>
+      </div>
+      <div class="img-card">
+        <img src="1.0x.jpg" alt="1x zoom" class="row-img">
+        <span class="img-caption">1.0x Zoom</span>
+      </div>
+      <div class="img-card">
+        <img src="0.5x.jpg" alt="0.5x zoom" class="row-img">
+        <span class="img-caption">0.5x Zoom</span>
+      </div>
     </div>
     <h2>SELFIE:</h2>
     <p>the wrong way vs the right way</p>
