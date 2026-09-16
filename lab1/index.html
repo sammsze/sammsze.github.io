@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project #1 Submission</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background-color: #ffffff;
+      color: #000000;
+      line-height: 1.6;
+    }
+
+    /* Common Section Formatting */
+    section {
+      min-height: 100vh;
+      padding: 100px 8%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .section-title {
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      line-height: 1.1;
+      margin-bottom: 25px;
+    }
+
+    .writeup {
+      font-size: clamp(1rem, 1.8vw, 1.25rem);
+      max-width: 900px;
+      color: #333333;
+    }
+
+    .writeup p + p {
+      margin-top: 15px;
+    }
+
+    /* Section 1: Overview */
+    .section-1 {
+      background-color: #000000;
+      color: #ffffff;
+    }
+
+    .section-1 .section-title {
+      color: #ffffff;
+    }
+
+    .section-1 .writeup {
+      color: #cccccc;
+    }
+
+    /* Image Comparison Grids */
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 30px;
+      margin: 40px 0;
+      width: 100%;
+    }
+
+    .image-card {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background-color: #f9f9f9;
+      padding: 15px;
+      border: 2px solid #000000;
+    }
+
+    .image-card img {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      display: block;
+      background-color: #e0e0e0;
+    }
+
+    .image-card .label {
+      font-weight: bold;
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Section 2: Single-Scale */
+    .section-2 {
+      background-color: #ffffff;
+    }
+
+    /* Section 3: Pyramid Speedup */
+    .section-3 {
+      background-color: #000000;
+      color: #ffffff;
+    }
+
+    .section-3 .section-title {
+      color: #ffffff;
+    }
+
+    .section-3 .writeup {
+      color: #cccccc;
+    }
+
+    .section-3 .image-card {
+      background-color: #111111;
+      border: 2px solid #ffde00; /* Yellow accent border */
+      color: #ffffff;
+    }
+
+    /* Section 4: Additional Images */
+    .section-4 {
+      background-color: #ffffff;
+      color: #000000;
+    }
+
+    /* Section 5: Failures */
+    .section-5 {
+      background-color: #ffde00; /* Signature yellow background */
+      color: #000000;
+    }
+
+    .section-5 .section-title {
+      color: #000000;
+    }
+
+    .section-5 .writeup {
+      color: #111111;
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+      section {
+        padding: 60px 5%;
+      }
+      .comparison-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+
+    <!-- SECTION 1: OVERVIEW -->
+    <section class="section-1">
+        <h1 class="section-title">PROJECT #1:<br>COLORIZING THE PROKUDIN-GORSKII COLLECTION</h1>
+        <div class="writeup">
+            <p> 
+                Each glass plate is a single grayscale image containing all three exposures stacked vertically (BGR from top to bottom).
+            </p>
+            <p>    
+                For each image, I follow these steps:
+            </p>
+            <p>
+                1. Split the plate into thirds of equal height(B, G, R).
+            </p>
+            <p>
+                2. Search for the (dy, dx) pixel shift that best lines up G onto B, and R onto B.
+            </p>
+            <p>
+                3. Shift G and R by those amounts and stack [R, G, B] into a color image.
+            </p>
+            <p>
+                4. Clean up the result by cropping mismatched plate edges, and correct the color balance and/or contrast.
+            </p>
+        </div>
+    </section>
+
+    <!-- SECTION 2: SINGLE-SCALE ALIGNMENT -->
+    <section class="section-2">
+        <h2 class="section-title">SINGLE-SCALE ALIGNMENT</h2>
+
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="results/monastery.jpg" alt="Monastery After Alignment">
+                <span class="label">Monastery After Alignment</span>
+            </div>
+            <div class="shift-subtext">
+                G Shift: [-3, 2] &nbsp;|&nbsp; R Shift: [3, 2]
+            </div>
+        </div>
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="results/cathedral.jpg" alt="Cathedral After Alignment">
+                <span class="label">Cathedral After Alignment</span>
+            </div>
+            <div class="shift-subtext">
+                G Shift: [5, 2] &nbsp;|&nbsp; R Shift: [12, 3]
+            </div>
+        </div>
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="results/tobolsk.jpg" alt="Tobolsk After Alignment">
+                <span class="label">Tobolsk After Alignment</span>
+            </div>
+            <div class="shift-subtext">
+                G Shift: [3, 3] &nbsp;|&nbsp; R Shift: [6, 3]
+            </div>
+        </div>
+        <div class="writeup">
+            <p>
+                The single-scale alignment approach evaluates every integer shift within a fixed window, selecting the displacement vector that returns the highest similarity relative to the reference channel. Candidate shifts are evaluated using two primary distance metrics:
+            </p>
+
+            <p>
+                <strong>1. L2 / Euclidean Distance:</strong> Treats both image channels as flattened vectors and calculates the spatial distance between them:
+            </p>
+            <p style="text-align: center; margin: 15px 0;">
+                $$D_{L2}(A, B) = \sqrt{\sum (A - B)^2}$$
+            </p>
+
+            <p>
+                <strong>2. Normalized Cross-Correlation (NCC):</strong> Mean-subtracts and L<sub>2</sub>-normalizes both image patches before computing their dot product:
+            </p>
+            <p style="text-align: center; margin: 15px 0;">
+                $$\text{NCC}(A, B) = \frac{\langle A - \bar{A}, B - \bar{B} \rangle}{\|A - \bar{A}\|_2 \|B - \bar{B}\|_2}$$
+            </p>
+
+            <p>
+                <strong>Practical Implementation Details:</strong><br>
+                The outer 10% border of each glass plate contains  scanning artifacts and dark borders that affects the distance calculations regardless of actual image alignment. To prevent these edge artifacts from biasing the scoring metrics, alignment scores are only calculated on the cropped interior region of the images.
+            </p>
+        </div>
+    </section>
+
+    <!-- SECTION 3: COARSE-TO-FINE PYRAMID SPEEDUP -->
+    <section class="section-3">
+        <h2 class="section-title">COARSE-TO-FINE PYRAMID SPEEDUP</h2>
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="results/church.jpg" alt="Church After Alignment">
+                <span class="label">Church After Alignment</span>
+            </div>
+            <div class="shift-subtext">
+                G Shift: [25, 4] &nbsp;|&nbsp; R Shift: [58, -4]
+            </div>
+        </div>
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="results/emir.jpg" alt="Emir After Alignment">
+                <span class="label">Emir After Alignment</span>
+            </div>
+            <div class="shift-subtext">
+                G Shift: [49, 24] &nbsp;|&nbsp; R Shift: [141, -205]
+            </div>
+        </div>
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="results/harvesters.jpg" alt="Harvesters After Alignment">
+                <span class="label">Harvesters After Alignment</span>
+            </div>
+            <div class="shift-subtext">
+                G Shift: [60, 17] &nbsp;|&nbsp; R Shift: [124, 13]
+            </div>
+        </div>
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="results/icon.jpg" alt="Icon After Alignment">
+                <span class="label">Icon After Alignment</span>
+            </div>
+            <div class="shift-subtext">
+                G Shift: [41, 17] &nbsp;|&nbsp; R Shift: [89, 23]
+            </div>
+        </div>
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="results/ilemselga.jpg" alt="ilemselga After Alignment">
+                <span class="label">ilemselga After Alignment</span>
+            </div>
+            <div class="shift-subtext">
+                G Shift: [40, 7] &nbsp;|&nbsp; R Shift: [130, 11]
+            </div>
+        </div>
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="results/melons.jpg" alt="Melons After Alignment">
+                <span class="label">Melons After Alignment</span>
+            </div>
+            <div class="shift-subtext">
+                G Shift: [82, 11] &nbsp;|&nbsp; R Shift: 178, 13]
+            </div>
+        </div>
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="results/religous_painting.jpg" alt="Religous Painting After Alignment">
+                <span class="label">Religous Painting After Alignment</span>
+            </div>
+            <div class="shift-subtext">
+                G Shift: [28, 3] &nbsp;|&nbsp; R Shift: [68, 7]
+            </div>
+        </div>
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="results/self_portrait.jpg" alt="Self Portrait After Alignment">
+                <span class="label">Self Portrait After Alignment/span>
+            </div>
+            <div class="shift-subtext">
+                G Shift: [79, 29] &nbsp;|&nbsp; R Shift: [176, 37]
+            </div>
+        </div>
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="results/siren.jpg" alt="Siren After Alignment">
+                <span class="label">Siren After Alignment</span>
+            </div>
+            <div class="shift-subtext">
+                G Shift: [49, -6] &nbsp;|&nbsp; R Shift: [96, -25]
+            </div>
+        </div>
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="results/three_generations.jpg" alt="Three Generations After Alignment">
+                <span class="label">Three Generations After Alignment</span>
+            </div>
+            <div class="shift-subtext">
+                G Shift: [53, 14] &nbsp;|&nbsp; R Shift: [112, 11]
+            </div>
+        </div>
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="results/wharf.jpg" alt="Wharf After Alignment">
+                <span class="label">Wharf After Alignment</span>
+            </div>
+            <div class="shift-subtext">
+                G Shift: [15, -7] &nbsp;|&nbsp; R Shift: [83, -16]
+            </div>
+        </div>
+        <div class="writeup">
+        <p>
+            While the previous brute-force approach was fine for smaller images (time complexity of O(window²) per channel), this would not be feasible for larger images, where the true displacement can be over 100 pixels, which would mean that the algorithm has to score 10,000++ images.
+        </p> 
+        <p>
+            Thus, a coarse-to-fine pyramid approach is used.
+        </p>
+        <p>    
+            It works by repeatedly downsampling the image by 2× until it is below a small threshold (min_size, default 400px).
+            At that coarsest resolution, the exhaustive search is run with a wide window. Any large shifts is detected here, and because the image is tiny, the time complexity is not too high.
+            Next, the coarse estimate is multiplied by 2 to project it onto the next finer level, then refine with a small window (±2–3px). The estimate should already be close, so this step just corrects rounding errors introduced by doubling.
+            The previous step is repeated until the image is back at its full resolution.
+        </p>
+        <p>   
+            I initially put a wide search window over every iteration. However, it should only be used at the coarsest level, as it becomes exhaustive to search over the large image repeatedly, and it does not improve the accuracy.
+        </p>
+        </div>
+    </section>
+
+    <!-- SECTION 4: ADDITIONAL IMAGES -->
+    <section class="section-4">
+        <h2 class="section-title">ADDITIONAL IMAGES & RESULTS</h2>
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="results/path.jpg" alt="Path After Alignment">
+                <span class="label">Path After Alignment</span>
+            </div>
+            <div class="shift-subtext">
+                G Shift: [28, -17] &nbsp;|&nbsp; R Shift: [65, -34]
+            </div>
+        </div>
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="results/statue.jpg" alt="Statue After Alignment">
+                <span class="label">Statue After Alignment</span>
+            </div>
+            <div class="shift-subtext">
+                G Shift: [44, 2] &nbsp;|&nbsp; R Shift: [164, 2]
+            </div>
+        </div>
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="results/building.jpg" alt="Building After Alignment">
+                <span class="label">Building After Alignment</span>
+            </div>
+            <div class="shift-subtext">
+                G Shift: [55, 35] &nbsp;|&nbsp; R Shift: [124, 61]
+            </div>
+        </div>
+
+        <div class="writeup">
+        <p>
+            The three extra plates from the Prokudin-Gorskii collection were run through the same algorithm, and all three aligned cleanly without any changes to the code.
+        </p>
+        </div>
+    </section>
+
+    <!-- SECTION 5: FAILURES -->
+    <section class="section-5">
+        <h2 class="section-title">FAILURES & EDGE CASES</h2>
+        <div class="writeup">
+            <p>
+                During testing, some high-contrast images had severe alignment errors, particularly in <code>emir.tif</code>. This is because the blue, green, and red channels in this photograph differ substantially in exposure and contrast (especially across the patterned robe and skin tones). 
+                Since my initial intensity metrics focused on brightness mismatches rather than underlying geometric structures, this resulted in the massive misalignment where the red channel was severely offset, resulting in the distorted image.
+            </p>
+            <p>
+                To solve this, a Sobel gradient-magnitude map was computed for each channel to extract sharp edge maps:
+            </p>
+            <p style="text-align: center; margin: 20px 0;">
+                $$E(x,y) = \sqrt{\left(\frac{\partial I}{\partial x}\right)^2 + \left(\frac{\partial I}{\partial y}\right)^2}$$
+            </p>
+            <p>
+                Because physical edges remain in the exact same spatial location regardless of color intensity or channel brightness, aligning on edge gradients completely bypasses exposure differences. 
+                After applying the displacement vectors calculated from these edge maps directly onto the original image channels, <code>emir.tif</code> was successfully aligned properly.
+            </p>
+        </div>
+    </section>
+
+</body>
+</html>
