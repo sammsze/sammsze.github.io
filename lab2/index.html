@@ -347,7 +347,6 @@ def conv2d_2loops(img: np.ndarray, kernel: np.ndarray) -> np.ndarray:
                 <li><strong>Max Absolute Error (2-Loop vs SciPy):</strong> $7.77 \times 10^{-16}$</li>
                 <li><strong>Max Absolute Error (4-Loop vs SciPy):</strong> $2.22 \times 10^{-15}$</li>
             </ul>
-
             <p>
                 <strong>Analysis:</strong>
             </p>
@@ -362,6 +361,11 @@ def conv2d_2loops(img: np.ndarray, kernel: np.ndarray) -> np.ndarray:
                     <strong>C-Extension Efficiency:</strong> SciPy's <code>convolve2d</code> completes in $0.1499\text{ s}$, executing approximately <strong>$24.3\times$ faster</strong> than 2-loop NumPy and <strong>$160.8\times$ faster</strong> than the 4-loop baseline. This can be attributed to compiled C-level loops and optimized memory layout access.
                 </li>
             </ul>
+
+            <div class="full-width-figure">
+                <img src="part1_1_results.png" alt="Part 1.1 Convolution Results Strip">
+                <div class="label">Part 1.1 Convolution Results (Original, Box Filter Blur, Dx, Dy Derivatives)</div>
+            </div>
         </div>
 
         <!-- PART 1.2 -->
@@ -447,11 +451,18 @@ def conv2d_2loops(img: np.ndarray, kernel: np.ndarray) -> np.ndarray:
             <img src="part2_1_taj_unsharp_mask.png" alt="Taj Mahal Unsharp Mask Pipeline">
             <div class="label">Taj Mahal Unsharp Masking Process & Results</div>
         </div>
-
+        <div class="full-width-figure" style="margin-top: 25px;">
+            <img src="part2_1_taj_alpha_comparison.png" alt="Taj Mahal Alpha Comparison">
+            <div class="label">Taj Mahal Alpha Comparison</div>
+        </div>
         <!-- Part 2.1 Duomo Figure -->
         <div class="full-width-figure" style="margin-top: 25px;">
             <img src="part2_1_duomo_unsharp_mask.png" alt="Duomo Cathedral Unsharp Mask Pipeline">
             <div class="label">Duomo Cathedral Unsharp Masking Process & Results</div>
+        </div>
+        <div class="full-width-figure" style="margin-top: 25px;">
+            <img src="part2_1_duomo_alpha_comparison.png" alt="Duomo Alpha Comparison">
+            <div class="label">Duomo Alpha Comparison</div>
         </div>
 
         <div class="writeup" style="margin-top: 20px;">
