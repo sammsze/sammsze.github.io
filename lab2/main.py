@@ -222,36 +222,40 @@ def question_2_1():
     img_bgr = cv2.imread('duomo.jpg')
     duomo = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB).astype(np.float64) / 255.0
 
-    blurred_taj, high_freq_taj, sharp_taj = unsharp_mask(taj, sigma=2.0, alpha=1.5)
-    blurred_duomo, high_freq_duomo, sharp_duomo = unsharp_mask(duomo, sigma=2.0, alpha=1.5)
+    alphas = [0.5, 1.5, 3.0, 5.0]
+    images = [('taj', taj), ('duomo', duomo)]
 
-    # display results 
-    fig, axes = plt.subplots(1, 4, figsize=(16, 4))
-    axes[0].imshow(taj); axes[0].set_title("Original")
-    axes[1].imshow(blurred_taj); axes[1].set_title(r"Blurred ($\sigma=2$)")
-    axes[2].imshow((high_freq_taj + 1) / 2); axes[2].set_title("High Frequencies")
-    axes[3].imshow(sharp_taj); axes[3].set_title(r"Sharpened ($\alpha=1.5$)")
+    for name, img in images:
+        # 1. Save standard step-by-step breakdown (Original, Blurred, High-Freq, Sharpened)
+        blurred, high_freq, sharp = unsharp_mask(img, sigma=2.0, alpha=1.5)
+        
+        fig, axes = plt.subplots(1, 4, figsize=(16, 4))
+        axes[0].imshow(img); axes[0].set_title("Original")
+        axes[1].imshow(blurred); axes[1].set_title(r"Blurred ($\sigma=2$)")
+        axes[2].imshow((high_freq + 1) / 2); axes[2].set_title("High Frequencies")
+        axes[3].imshow(sharp); axes[3].set_title(r"Sharpened ($\alpha=1.5$)")
+        
+        for ax in axes:
+            ax.axis('off')
+        plt.tight_layout()
+        plt.savefig(f"part2_1_{name}_unsharp_mask.png", dpi=300)
+        plt.show()
 
-    for ax in axes:
-        ax.axis('off')
+        # 2. Plot sharpening comparison across varying alpha values
+        fig, axes = plt.subplots(1, len(alphas) + 1, figsize=(4 * (len(alphas) + 1), 4))
+        axes[0].imshow(img)
+        axes[0].set_title("Original")
+        axes[0].axis('off')
 
-    plt.tight_layout()
-    plt.savefig("part2_1_taj_unsharp_mask.png", dpi=300)
-    plt.show()
+        for idx, a in enumerate(alphas):
+            _, _, sharp_var = unsharp_mask(img, sigma=2.0, alpha=a)
+            axes[idx + 1].imshow(sharp_var)
+            axes[idx + 1].set_title(rf"$\alpha = {a}$")
+            axes[idx + 1].axis('off')
 
-    fig, axes = plt.subplots(1, 4, figsize=(16, 4))
-    axes[0].imshow(duomo); axes[0].set_title("Original")
-    axes[1].imshow(blurred_duomo); axes[1].set_title(r"Blurred ($\sigma=2$)")
-    axes[2].imshow((high_freq_duomo + 1) / 2); axes[2].set_title("High Frequencies")
-    axes[3].imshow(sharp_duomo); axes[3].set_title(r"Sharpened ($\alpha=1.5$)")
-
-    for ax in axes:
-        ax.axis('off')
-
-    plt.tight_layout()
-    plt.savefig("part2_1_duomo_unsharp_mask.png", dpi=300)
-    plt.show()
-
+        plt.tight_layout()
+        plt.savefig(f"part2_1_{name}_alpha_comparison.png", dpi=300)
+        plt.show()
 # question 2.2
 def get_points(im1: np.ndarray, im2: np.ndarray) -> tuple:
     print('Please select 2 points in each image for alignment.')
@@ -768,6 +772,7 @@ def main():
     question_1_2()
     question_1_3()
     question_2_1()
+    question_2_2("DerekPicture.jpg", "nutmeg.jpg", "0")
     question_2_2("joe_bruin.jpg","oski.jpeg","1")
     question_2_2("kitten.jpg","rumtumtugger.jpg","2")
     question_2_3()
