@@ -368,14 +368,14 @@ def conv2d_2loops(img: np.ndarray, kernel: np.ndarray) -> np.ndarray:
         <h3 class="subsection-title">Part 1.2: Finite Difference Operator</h3>
         <div class="writeup">
             <p>
-                The partial derivatives is computed in $x$ and $y$ of the standard <code>cameraman.png</code> image using the finite difference operators $D_x = [1, -1]$ and $D_y = [1, -1]^T$. The gradient magnitude image is calculated using:
+                The partial derivatives $x$ and $y$ of the standard <code>cameraman.png</code> image using the finite difference operators $D_x = [1, -1]$ and $D_y = [1, -1]^T$. The gradient magnitude image is calculated using:
             </p>
             <p style="text-align: center; margin: 15px 0; font-size: 1.1rem;">
                 $$\|\nabla I\| = \sqrt{\left(\frac{\partial I}{\partial x}\right)^2 + \left(\frac{\partial I}{\partial y}\right)^2}$$
             </p>
             <p>
                 <strong>Threshold Selection & Trade-offs:</strong> 
-                Binarizing the gradient magnitude image requires picking an suitable threshold. 
+                Binarizing the gradient magnitude image requires picking a suitable threshold. 
                 Setting the threshold too low preserves high-frequency noise in the background grass. Meanwhile, setting it too high causes the soft silhouette edges on the coat to go undetected. 
                 A qualitative threshold suppressed high-frequency background noise while keeping all major structural edges.
             </p>
@@ -459,7 +459,7 @@ def conv2d_2loops(img: np.ndarray, kernel: np.ndarray) -> np.ndarray:
                 <strong>Evaluation (Blurring then Resharpening):</strong> 
                 When a sharp image is artificially blurred and subsequently re-sharpened with unsharp masking, 
                 we increase the local edge contrast to give a perceptual illusion of sharpness. 
-                However, some high-frequency details were lost during the low-pass blurring, can they cannot be fully recovered.
+                However, some high-frequency details were lost during the low-pass blurring, they cannot be fully recovered.
             </p>
         </div>
 
@@ -474,6 +474,17 @@ def conv2d_2loops(img: np.ndarray, kernel: np.ndarray) -> np.ndarray:
         </div>
 
         <!-- Hybrid Pair 1 -->
+        <h4 style="margin-top: 25px; color: #ffde00; text-transform: uppercase;">0. Derek and Nutmeg</h4>
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="part2_2_0_hybrid_fourier.png" alt="Hybrid 1 Fourier Spectrum Analysis">
+                <span class="label">Fourier Analysis (Inputs, Low-pass, High-pass, Hybrid)</span>
+            </div>
+            <div class="image-card">
+                <img src="part2_2_0_hybrid_result.png" alt="Hybrid 1 Final Result">
+                <span class="label">Hybrid Result 1</span>
+            </div>
+        </div>
         <h4 style="margin-top: 25px; color: #ffde00; text-transform: uppercase;">1. Hybrid Pair 1: Fourier Spectrum & Final Output</h4>
         <div class="comparison-grid">
             <div class="image-card">
@@ -578,7 +589,7 @@ def conv2d_2loops(img: np.ndarray, kernel: np.ndarray) -> np.ndarray:
                 <li>
                     <strong>Derivative of Gaussian (DoG):</strong> Associativity proves $(I * G) * D_x = I * (G * D_x)$. 
                     By pre-computing the derivative kernel $\text{DoG}_x = G * D_x$, we can eliminate redundant image passes, 
-                    and turn the two-step blur-then-differentiate sequence into a single $O(1)$ spatial operation.
+                    and turn the two-step blur-then-differentiate sequence into a single pass.
                 </li>
                 <li>
                     <strong>Unsharp Masking:</strong> Expressing image sharpening as $I_{\text{sharp}} = I + \alpha(I - I * G)$ 
@@ -591,7 +602,7 @@ def conv2d_2loops(img: np.ndarray, kernel: np.ndarray) -> np.ndarray:
                 <li>
                     <strong>Multi-Resolution Blending:</strong> 
                     Linearity guarantees that frequency decomposition and spatial combination are commutable. 
-                    By breaking an image into its orthogonal frequency bands using Laplacian stacks, 
+                    By breaking an image into its Laplacian stacks, 
                     we can execute windowed blending independently in each band.
                     Afterwards, we can sum the reconstructed levels back up ($\sum L_B^l$), allowing us to avoid spatial seam artifacts.
                 </li>
