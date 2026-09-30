@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CS180 / CS280A: Project 2 - Fun with Filters and Frequencies!</title>
+  
+  <!-- MathJax Configuration Script -->
+  <script>
+    MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background-color: #ffffff;
+      color: #000000;
+      line-height: 1.6;
+    }
+
+    /* Fixed Navigation Header */
+    nav {
+      position: sticky;
+      top: 0;
+      background: #000000;
+      color: #ffffff;
+      padding: 15px 8%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 1000;
+      border-bottom: 2px solid #333333;
+    }
+
+    nav .logo {
+      font-weight: 900;
+      letter-spacing: 1px;
+      font-size: 1.1rem;
+    }
+
+    nav .links a {
+      color: #ffffff;
+      text-decoration: none;
+      margin-left: 20px;
+      font-weight: bold;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      transition: color 0.2s ease;
+    }
+
+    nav .links a:hover {
+      color: #ffde00;
+    }
+
+    /* Common Section Styles */
+    section {
+      padding: 60px 8%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .section-title {
+      font-size: clamp(2rem, 4.5vw, 3.2rem);
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      line-height: 1.15;
+      margin-bottom: 20px;
+    }
+
+    .subsection-title {
+      font-size: clamp(1.3rem, 2.5vw, 1.8rem);
+      font-weight: 800;
+      margin: 35px 0 15px 0;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-bottom: 2px solid currentColor;
+      padding-bottom: 5px;
+    }
+
+    .writeup {
+      font-size: clamp(0.95rem, 1.6vw, 1.1rem);
+      max-width: 1000px;
+      color: inherit;
+    }
+
+    .writeup p + p {
+      margin-top: 14px;
+    }
+
+    .writeup ul, .writeup ol {
+      margin: 15px 0 15px 30px;
+    }
+
+    .writeup li {
+      margin-bottom: 8px;
+    }
+
+    /* Theme Color Sections */
+    .bg-dark {
+      background-color: #000000;
+      color: #ffffff;
+    }
+
+    .bg-dark .writeup {
+      color: #cccccc;
+    }
+
+    .bg-dark .image-card {
+      background-color: #111111;
+      border: 2px solid #333333;
+      color: #ffffff;
+    }
+
+    .bg-light {
+      background-color: #ffffff;
+      color: #000000;
+    }
+
+    .bg-yellow {
+      background-color: #ffde00;
+      color: #000000;
+    }
+
+    .bg-yellow .writeup {
+      color: #111111;
+    }
+
+    /* Card & Image Grid Layouts */
+    .full-width-figure {
+      margin: 20px 0;
+      width: 100%;
+      background-color: #f9f9f9;
+      padding: 15px;
+      border: 2px solid #000000;
+      border-radius: 4px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      text-align: center;
+    }
+
+    .bg-dark .full-width-figure {
+      background-color: #111111;
+      border-color: #333333;
+    }
+
+    .full-width-figure img {
+      width: 100%;
+      height: auto;
+      max-height: 500px;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto;
+    }
+
+    .full-width-figure .label {
+      margin-top: 12px;
+      font-weight: bold;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin: 25px 0;
+      width: 100%;
+    }
+
+    .image-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-color: #f9f9f9;
+      padding: 12px;
+      border: 2px solid #000000;
+      border-radius: 4px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+
+    .image-card img {
+      width: 100%;
+      max-height: 400px;
+      object-fit: contain;
+      display: block;
+      border-radius: 2px;
+    }
+
+    .image-card .label {
+      margin-top: 10px;
+      font-weight: bold;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      text-align: center;
+    }
+
+    /* Code Blocks */
+    pre {
+      background-color: #1e1e1e;
+      color: #d4d4d4;
+      padding: 18px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: 'Consolas', 'Courier New', Courier, monospace;
+      font-size: 0.88rem;
+      margin: 20px 0;
+      border: 1px solid #333333;
+      line-height: 1.45;
+    }
+
+    code {
+      font-family: 'Consolas', 'Courier New', Courier, monospace;
+      background-color: rgba(150, 150, 150, 0.15);
+      padding: 2px 5px;
+      border-radius: 3px;
+      font-size: 0.9em;
+    }
+
+    pre code {
+      background-color: transparent;
+      padding: 0;
+    }
+
+    /* Highlight Box */
+    .highlight-box {
+      margin-top: 30px;
+      padding: 20px;
+      border-left: 5px solid #ffde00;
+      background-color: rgba(255, 222, 0, 0.08);
+      border-radius: 0 4px 4px 0;
+    }
+
+    .bg-dark .highlight-box {
+      border-left-color: #ffde00;
+      background-color: #111111;
+    }
+
+    /* Responsive Queries */
+    @media (max-width: 768px) {
+      section {
+        padding: 40px 5%;
+      }
+      nav {
+        flex-direction: column;
+        gap: 10px;
+      }
+      nav .links a {
+        margin: 0 8px;
+      }
+      .comparison-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+    <!-- STICKY TOP NAVIGATION BAR -->
+    <nav>
+      <div class="logo">CS180/280A: PROJECT 2</div>
+      <div class="links">
+        <a href="#part1">Part 1: Filters</a>
+        <a href="#part2">Part 2: Frequencies</a>
+        <a href="#learnings">Takeaways</a>
+      </div>
+    </nav>
+
+    <!-- HEADER / OVERVIEW SECTION -->
+    <section class="bg-dark">
+        <h1 class="section-title">PROJECT 2:<br>FUN WITH FILTERS & FREQUENCIES!</h1>
+    </section>
+
+    <!-- PART 1: FUN WITH FILTERS -->
+    <section id="part1" class="bg-light">
+        <h2 class="section-title">PART 1: FUN WITH FILTERS</h2>
+
+        <!-- PART 1.1 -->
+        <h3 class="subsection-title">Part 1.1: Convolutions from Scratch!</h3>
+        <div class="writeup">
+            <p>
+                To understand 2D spatial filtering, I implemented 2D convolution in NumPy using two approaches: a 4-loop implementation and an optimized 2-loop vectorization. Custom zero-padding ("same" mode) was integrated, and the filter kernel was flipped horizontally and vertically before sliding across the image matrix:
+            </p>
+            <p style="text-align: center; margin: 15px 0; font-size: 1.1rem;">
+                $$(I * K)(x, y) = \sum_{i=-a}^{a} \sum_{j=-b}^{b} I(x - i, y - j) K(i, j)$$
+            </p>
+
+            <pre><code>import numpy as np
+
+def conv2d_4loops(img: np.ndarray, kernel: np.ndarray) -> np.ndarray:
+    H, W = img.shape
+    kH, kW = kernel.shape
+    kernel_flipped = kernel[::-1, ::-1] # flip filter horizontally & vertically
+    
+    pad_h, pad_w = kH // 2, kW // 2
+    padded_img = np.pad(img, ((pad_h, pad_h), (pad_w, pad_w)), mode='constant', constant_values=0)
+    out = np.zeros((H, W), dtype=np.float64)
+    
+    for i in range(H):
+        for j in range(W):
+            val = 0.0
+            for m in range(kH):
+                for n in range(kW):
+                    val += padded_img[i + m, j + n] * kernel_flipped[m, n]
+            out[i, j] = val
+    return out
+
+def conv2d_2loops(img: np.ndarray, kernel: np.ndarray) -> np.ndarray:
+    H, W = img.shape
+    kH, kW = kernel.shape
+    kernel_flipped = kernel[::-1, ::-1]
+    
+    pad_h, pad_w = kH // 2, kW // 2
+    padded_img = np.pad(img, ((pad_h, pad_h), (pad_w, pad_w)), mode='constant', constant_values=0)
+    out = np.zeros((H, W), dtype=np.float64)
+    
+    for i in range(H):
+        for j in range(W):
+            patch = padded_img[i:i + kH, j:j + kW]
+            out[i, j] = np.sum(patch * kernel_flipped)
+    return out
+            </code></pre>
+            
+            <p><strong>Performance Benchmarks & Precision:</strong></p>
+            <ul>
+                <li><strong>4-Loop Convolution Execution Time:</strong> $24.1021\text{ s}$</li>
+                <li><strong>2-Loop Convolution Execution Time:</strong> $3.6430\text{ s}$</li>
+                <li><strong>SciPy <code>convolve2d</code> Execution Time:</strong> $0.1499\text{ s}$</li>
+                <li><strong>Max Absolute Error (2-Loop vs SciPy):</strong> $7.77 \times 10^{-16}$</li>
+                <li><strong>Max Absolute Error (4-Loop vs SciPy):</strong> $2.22 \times 10^{-15}$</li>
+            </ul>
+
+            <p>
+                <strong>Analysis:</strong>
+            </p>
+            <ul>
+                <li>
+                    <strong>Correctness:</strong> The maximum absolute differences relative to SciPy's reference implementation are on the order of $10^{-15}$ to $10^{-16}$, therefore proving that it is very similar.
+                </li>
+                <li>
+                    <strong>Speedup & Vectorization:</strong> Replacing the two inner loops over the kernel with NumPy 2D array slicing and vectorized reduction improved the execution time from $24.1021\text{ s}$ to $3.6430\text{ s}$, which is roughly a <strong>$6.62\times$ speedup</strong>. 
+                </li>
+                <li>
+                    <strong>C-Extension Efficiency:</strong> SciPy's <code>convolve2d</code> completes in $0.1499\text{ s}$, executing approximately <strong>$24.3\times$ faster</strong> than 2-loop NumPy and <strong>$160.8\times$ faster</strong> than the 4-loop baseline. This can be attributed to compiled C-level loops and optimized memory layout access.
+                </li>
+            </ul>
+        </div>
+
+        <!-- PART 1.2 -->
+        <h3 class="subsection-title">Part 1.2: Finite Difference Operator</h3>
+        <div class="writeup">
+            <p>
+                The partial derivatives is computed in $x$ and $y$ of the standard <code>cameraman.png</code> image using the finite difference operators $D_x = [1, -1]$ and $D_y = [1, -1]^T$. The gradient magnitude image is calculated using:
+            </p>
+            <p style="text-align: center; margin: 15px 0; font-size: 1.1rem;">
+                $$\|\nabla I\| = \sqrt{\left(\frac{\partial I}{\partial x}\right)^2 + \left(\frac{\partial I}{\partial y}\right)^2}$$
+            </p>
+            <p>
+                <strong>Threshold Selection & Trade-offs:</strong> 
+                Binarizing the gradient magnitude image requires picking an suitable threshold. 
+                Setting the threshold too low preserves high-frequency noise in the background grass. Meanwhile, setting it too high causes the soft silhouette edges on the coat to go undetected. 
+                A qualitative threshold suppressed high-frequency background noise while keeping all major structural edges.
+            </p>
+        </div>
+
+        <!-- Part 1.2 Combined Image -->
+        <div class="full-width-figure">
+            <img src="part1_2_results.png" alt="Part 1.2 Finite Difference Results Strip">
+            <div class="label">Part 1.2 Finite Difference Results (Dx, Dy, Gradient Magnitude, Binarized Edges)</div>
+        </div>
+
+        <!-- PART 1.3 -->
+        <h3 class="subsection-title">Part 1.3: Derivative of Gaussian (DoG) Filter</h3>
+        <div class="writeup">
+            <p>
+                Due to noise sensitivity in standard finite differences, Gaussian smoothing $G$ was introduced. 
+                A 2D Gaussian kernel was created via outer product of a 1D kernel:
+            </p>
+            <p style="text-align: center; margin: 15px 0; font-size: 1.1rem;">
+                $$G_{2D} = g \cdot g^T$$
+            </p>
+            <p>
+                Two approaches are compared:
+            </p>
+            <ol>
+                <li>Blur the image first ($I * G$), then apply difference operators ($D_x, D_y$).</li>
+                <li>Convolve the difference operators directly onto the Gaussian kernel to build Derivative of Gaussian filters ($\text{DoG}_x = G * D_x$, $\text{DoG}_y = G * D_y$), 
+                  thus requiring only a single convolution step on the image: $(I * \text{DoG}_x)$.</li>
+            </ol>
+            <p>
+                <strong>Observation:</strong> Both methods produced identical output images due to the associative property of convolution. 
+                However, gaussian smoothing dramatically reduced the noise artifacts in the background grass, yielding significantly cleaner edge contours.
+            </p>
+        </div>
+
+        <!-- Part 1.3 Combined Image -->
+        <div class="full-width-figure">
+            <img src="part1_3_results.png" alt="Part 1.3 DoG Filter Results Strip">
+            <div class="label">Part 1.3 Derivative of Gaussian Results (DoG Kernels, Smoothed Gradient Magnitude, Thresholded Edges)</div>
+        </div>
+    </section>
+
+    <!-- PART 2: FUN WITH FREQUENCIES -->
+    <section id="part2" class="bg-dark">
+        <h2 class="section-title">PART 2: FUN WITH FREQUENCIES!</h2>
+
+        <!-- PART 2.1 -->
+        <h3 class="subsection-title">Part 2.1: Image "Sharpening"</h3>
+        <div class="writeup">
+            <p>
+                Unsharp masking extracts high-frequency components of an image by subtracting a Gaussian-blurred (low-pass) version from the original:
+            </p>
+            <p style="text-align: center; margin: 15px 0; font-size: 1.1rem;">
+                $$I_{\text{high}} = I - (I * G)$$
+            </p>
+            <p>
+                To sharpen the image, the high frequences are added back with a scaling factor $\alpha$:
+            </p>
+            <p style="text-align: center; margin: 15px 0; font-size: 1.1rem;">
+                $$I_{\text{sharpened}} = I + \alpha \cdot I_{\text{high}} = I * \left( (1 + \alpha) e - \alpha G \right)$$
+            </p>
+            <p>
+                Below are the step-by-step unsharp masking pipelines for both the Taj Mahal and the Duomo cathedral:
+            </p>
+        </div>
+
+        <!-- Part 2.1 Taj Mahal Figure -->
+        <div class="full-width-figure" style="margin-top: 25px;">
+            <img src="part2_1_taj_unsharp_mask.png" alt="Taj Mahal Unsharp Mask Pipeline">
+            <div class="label">Taj Mahal Unsharp Masking Process & Results</div>
+        </div>
+
+        <!-- Part 2.1 Duomo Figure -->
+        <div class="full-width-figure" style="margin-top: 25px;">
+            <img src="part2_1_duomo_unsharp_mask.png" alt="Duomo Cathedral Unsharp Mask Pipeline">
+            <div class="label">Duomo Cathedral Unsharp Masking Process & Results</div>
+        </div>
+
+        <div class="writeup" style="margin-top: 20px;">
+            <p>
+                <strong>Evaluation (Blurring then Resharpening):</strong> 
+                When a sharp image is artificially blurred and subsequently re-sharpened with unsharp masking, 
+                we increase the local edge contrast to give a perceptual illusion of sharpness. 
+                However, some high-frequency details were lost during the low-pass blurring, can they cannot be fully recovered.
+            </p>
+        </div>
+
+        <!-- PART 2.2 -->
+        <h3 class="subsection-title">Part 2.2: Hybrid Images</h3>
+        <div class="writeup">
+            <p>
+                Following Oliva, Torralba, and Schyns (SIGGRAPH 2006), 
+                hybrid images combine the low spatial frequencies of one image with the high spatial frequencies of another. 
+                High frequencies are more obvious in close-ups, while low frequencies are easily seen at greater viewing distances.
+            </p>
+        </div>
+
+        <!-- Hybrid Pair 1 -->
+        <h4 style="margin-top: 25px; color: #ffde00; text-transform: uppercase;">1. Hybrid Pair 1: Fourier Spectrum & Final Output</h4>
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="part2_2_1_hybrid_fourier.png" alt="Hybrid 1 Fourier Spectrum Analysis">
+                <span class="label">Fourier Analysis (Inputs, Low-pass, High-pass, Hybrid)</span>
+            </div>
+            <div class="image-card">
+                <img src="part2_2_1_hybrid_result.png" alt="Hybrid 1 Final Result">
+                <span class="label">Hybrid Result 1</span>
+            </div>
+        </div>
+
+        <!-- Hybrid Pair 2 -->
+        <h4 style="margin-top: 25px; color: #ffde00; text-transform: uppercase;">2. Hybrid Pair 2: Fourier Spectrum & Final Output</h4>
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="part2_2_2_hybrid_fourier.png" alt="Hybrid 2 Fourier Spectrum Analysis">
+                <span class="label">Fourier Analysis (Inputs, Low-pass, High-pass, Hybrid)</span>
+            </div>
+            <div class="image-card">
+                <img src="part2_2_2_hybrid_result.png" alt="Hybrid 2 Final Result">
+                <span class="label">Hybrid Result 2</span>
+            </div>
+        </div>
+
+        <!-- PARTS 2.3 & 2.4 -->
+        <h3 class="subsection-title">Parts 2.3 & 2.4: Multi-Resolution Blending</h3>
+        <div class="writeup">
+            <p>
+                Following Burt and Adelson (1983), 
+                multi-resolution blending constructs Gaussian and Laplacian stacks without spatial downsampling. 
+                Each level $l$ of the Laplacian stack is derived as:
+            </p>
+            <p style="text-align: center; margin: 15px 0; font-size: 1.1rem;">
+                $$L_l = G_l - G_{l+1}$$
+            </p>
+            <p>
+                Using a Gaussian-smoothed mask stack $G(M)$, the blended Laplacian stack $L_B$ is computed at every level $l$:
+            </p>
+            <p style="text-align: center; margin: 15px 0; font-size: 1.1rem;">
+                $$L_B^l = G^l(M) \odot L_A^l + (1 - G^l(M)) \odot L_B^l$$
+            </p>
+            <p>
+                Reconstructing $L_B$ across all stack levels yields smooth transitions without noticeable seam artifacts.
+            </p>
+        </div>
+
+        <!-- Oraple Stack & Result -->
+        <h4 style="margin-top: 25px; color: #ffde00; text-transform: uppercase;">Classic Oraple (Apple + Orange) Stack Blend</h4>
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="part2_3_stack_visualization.png" alt="Oraple Stack Decomposition Visualization">
+                <span class="label">Gaussian & Laplacian Stack Decomposition</span>
+            </div>
+            <div class="image-card">
+                <img src="part2_3_oraple_reconstructed.png" alt="Reconstructed Oraple Result">
+                <span class="label">Reconstructed Oraple Result</span>
+            </div>
+        </div>
+
+        <!-- Custom Blend 1: Candy Flower -->
+        <h4 style="margin-top: 30px; color: #ffde00; text-transform: uppercase;">Custom Blend 1: Candy & Flower</h4>
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="part2_4_candy_flower_summary.png" alt="Candy Flower Process Summary">
+                <span class="label">Inputs, Mask & Stack Processing</span>
+            </div>
+            <div class="image-card">
+                <img src="part2_4_candy_flower_result.png" alt="Candy Flower Final Result">
+                <span class="label">Final Blended Candy-Flower</span>
+            </div>
+        </div>
+
+        <!-- Custom Blend 2: Lake Reflection -->
+        <h4 style="margin-top: 30px; color: #ffde00; text-transform: uppercase;">Custom Blend 2: Lake Reflection</h4>
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="part2_4_lake_reflection_summary.png" alt="Lake Reflection Process Summary">
+                <span class="label">Inputs, Mask & Stack Processing</span>
+            </div>
+            <div class="image-card">
+                <img src="part2_4_lake_reflection_result.png" alt="Lake Reflection Final Result">
+                <span class="label">Final Blended Lake Reflection</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION: TAKEAWAYS -->
+    <!-- SECTION: TAKEAWAYS -->
+    <section id="learnings" class="bg-yellow">
+        <h2 class="section-title">TAKEAWAYS</h2>
+        <div class="writeup">
+            <p>
+                My takeaway from this project is that <strong>2D spatial convolution is linear and associative</strong>, 
+                meaning complex, multi-stage image processing pipelines can be mathematically folded into a single unified filter kernel.
+            </p>
+            <p>
+                I have been treating edge detection, sharpening, and multi-resolution blending as separate algorithmic steps, 
+                but after this project, I realise that they all stem from the same fundamental frequency principles:
+            </p>
+            <ul>
+                <li>
+                    <strong>Derivative of Gaussian (DoG):</strong> Associativity proves $(I * G) * D_x = I * (G * D_x)$. 
+                    By pre-computing the derivative kernel $\text{DoG}_x = G * D_x$, we can eliminate redundant image passes, 
+                    and turn the two-step blur-then-differentiate sequence into a single $O(1)$ spatial operation.
+                </li>
+                <li>
+                    <strong>Unsharp Masking:</strong> Expressing image sharpening as $I_{\text{sharp}} = I + \alpha(I - I * G)$ 
+                    allows us to factor out $I$ and fold the identity impulse filter $e$ with the Gaussian kernel:
+                    <p style="text-align: center; margin: 10px 0; font-weight: bold;">
+                        $$K_{\text{unsharp}} = (1 + \alpha)e - \alpha G$$
+                    </p>
+                    This pipeline seem to require spatial subtraction and scaled feedback, but it is really just a single linear filter.
+                </li>
+                <li>
+                    <strong>Multi-Resolution Blending:</strong> 
+                    Linearity guarantees that frequency decomposition and spatial combination are commutable. 
+                    By breaking an image into its orthogonal frequency bands using Laplacian stacks, 
+                    we can execute windowed blending independently in each band.
+                    Afterwards, we can sum the reconstructed levels back up ($\sum L_B^l$), allowing us to avoid spatial seam artifacts.
+                </li>
+            </ul>
+        </div>
+    </section>
+
+</body>
+</html>
