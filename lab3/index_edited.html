@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CS180 Project #3: Flow Matching & Diffusion Models</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background-color: #ffffff;
+      color: #000000;
+      line-height: 1.6;
+    }
+
+    /* Top Navigation Bar */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background-color: #000000;
+      border-bottom: 2px solid #ffde00;
+      z-index: 1000;
+      padding: 12px 5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    nav .nav-brand {
+      color: #ffde00;
+      font-weight: 900;
+      font-size: 1.1rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    nav ul {
+      display: flex;
+      list-style: none;
+      gap: 20px;
+    }
+
+    nav a {
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: color 0.2s ease;
+    }
+
+    nav a:hover {
+      color: #ffde00;
+    }
+
+    /* Common Section Formatting */
+    section {
+      min-height: 100vh;
+      padding: 120px 8% 80px 8%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .section-title {
+      font-size: clamp(2.2rem, 5vw, 4rem);
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      line-height: 1.1;
+      margin-bottom: 25px;
+    }
+
+    .section-subtitle {
+      font-size: clamp(1.4rem, 2.5vw, 2rem);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 35px 0 15px 0;
+      border-left: 5px solid #ffde00;
+      padding-left: 15px;
+    }
+
+    .writeup {
+      font-size: clamp(1rem, 1.6vw, 1.15rem);
+      max-width: 950px;
+      color: #333333;
+    }
+
+    .writeup p + p {
+      margin-top: 15px;
+    }
+
+    .writeup ul, .writeup ol {
+      margin-left: 25px;
+      margin-top: 10px;
+      margin-bottom: 15px;
+    }
+
+    .writeup li {
+      margin-bottom: 8px;
+    }
+
+    /* Dark Section Styles */
+    .dark-section {
+      background-color: #000000;
+      color: #ffffff;
+    }
+
+    .dark-section .section-title, 
+    .dark-section .section-subtitle {
+      color: #ffffff;
+    }
+
+    .dark-section .writeup {
+      color: #cccccc;
+    }
+
+    .dark-section .image-card {
+      background-color: #111111;
+      border: 2px solid #ffde00;
+      color: #ffffff;
+    }
+
+    /* Yellow Section Styles */
+    .yellow-section {
+      background-color: #ffde00;
+      color: #000000;
+    }
+
+    .yellow-section .section-title, 
+    .yellow-section .section-subtitle {
+      color: #000000;
+      border-left-color: #000000;
+    }
+
+    .yellow-section .writeup {
+      color: #111111;
+    }
+
+    .yellow-section .image-card {
+      background-color: #ffffff;
+      border: 2px solid #000000;
+      color: #000000;
+    }
+
+    /* Image Comparison Grids */
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 25px;
+      margin: 30px 0;
+      width: 100%;
+    }
+
+    .grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .grid-4 { grid-template-columns: repeat(4, 1fr); }
+    .grid-5 { grid-template-columns: repeat(5, 1fr); }
+    .grid-7 { grid-template-columns: repeat(7, 1fr); }
+
+    .image-card {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background-color: #f9f9f9;
+      padding: 12px;
+      border: 2px solid #000000;
+    }
+
+    .image-card img {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      display: block;
+      background-color: #e0e0e0;
+    }
+
+    .image-card .label {
+      font-weight: bold;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-align: center;
+    }
+
+    .shift-subtext {
+      font-size: 0.8rem;
+      text-align: center;
+      font-family: monospace;
+      opacity: 0.85;
+      margin-top: -5px;
+    }
+
+    .code-block {
+      background-color: #1a1a1a;
+      color: #00ff66;
+      padding: 15px;
+      font-family: monospace;
+      border-radius: 4px;
+      overflow-x: auto;
+      margin: 15px 0;
+      font-size: 0.9rem;
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 1024px) {
+      .grid-4, .grid-5, .grid-7 { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 768px) {
+      section {
+        padding: 100px 5% 50px 5%;
+      }
+      nav ul {
+        display: none; /* Simplification for mobile view */
+      }
+      .grid-2, .grid-3, .grid-4, .grid-5, .grid-7 {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+  <script>
+    MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+
+  <!-- NAVIGATION BAR -->
+  <nav>
+    <div class="nav-brand">CS180/280A: PROJECT 3</div>
+    <ul>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#parta-sampling">Part A: Sampling</a></li>
+      <li><a href="#parta-cfg">Part A: CFG</a></li>
+      <li><a href="#parta-creative">Part A: Creative</a></li>
+      <li><a href="#partb-unet">Part B: Denoiser</a></li>
+      <li><a href="#partb-flow">Part B: Flow Matching</a></li>
+    </ul>
+  </nav>
+
+  <!-- SECTION 1: OVERVIEW -->
+  <section id="overview" class="dark-section">
+    <h1 class="section-title">PROJECT #3:<br>FLOW MATCHING & DIFFUSION MODELS</h1>
+  </section>
+
+  <!-- PART A SECTION 1: VISUALIZING TRAINING AND SAMPLING -->
+  <section id="parta-sampling">
+    <h2 class="section-title">PART A1: VISUALIZING TRAINING & SAMPLING</h2>
+    
+    <h3 class="section-subtitle">1.1 Forward Process & Noisy Inputs</h3>
+    <div class="writeup">
+      <p>
+        Flow matching defines a continuous path between Gaussian noise $x_0 \sim \mathcal{N}(0, \mathbf{I})$ and clean images $x_1$. Using linear optimal-transport (OT) interpolation, intermediate noisy states $x_t$ at time $t \in [0, 1]$ are generated via:
+      </p>
+      <p style="text-align: center; margin: 15px 0;">
+        $$x_t = (1 - t)\epsilon + t x_1, \quad \epsilon \sim \mathcal{N}(0, \mathbf{I})$$
+      </p>
+      <p>
+        At $t = 0$, $x_t$ is pure Gaussian noise, while at $t = 1$, $x_t$ is the clean original image.
+      </p>
+    </div>
+    <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+      <div class="image-card">
+        <img src="A_1.1.png" 
+           alt="Forward Noising Process Grid" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label">
+          Forward Noising Process<br>
+          (Original $x_1$, $t=0.25$, $t=0.50$, $t=0.75$)
+        </span>
+      </div>
+    </div>
+
+    <h3 class="section-subtitle">1.2 Classical Denoising (Gaussian Blur Baseline)</h3>
+    <div class="writeup">
+      <p>
+        As a baseline, we attempt classical denoising using Gaussian blur. Since signal amplitude is scaled down by $t$, we first restore signal amplitude by dividing by $t$, and then apply a Gaussian filter $G_\sigma$:
+      </p>
+      <p style="text-align: center; margin: 15px 0;">
+        $$\widehat{x}_1^{\text{blur}} = G_\sigma\left(\frac{x_t}{t}\right)$$
+      </p>
+      <p>
+        While Gaussian blur suppresses zero-mean high-frequency noise, it fails to recover structural detail at high noise levels ($t = 0.25$) because blurring destroys high-frequency edge information.
+      </p>
+    </div>
+    <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+      <div class="image-card">
+        <img src="A_1.2.1.png" 
+           alt="Gaussian Blur" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label">
+          Gaussian Blur for $t=0.25$
+        </span>
+      </div>
+    </div>
+    <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+      <div class="image-card">
+        <img src="A_1.2.2.png" 
+           alt="Gaussian Blur" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label">
+          Gaussian Blur for $t=0.50$
+        </span>
+      </div>
+    </div>
+    <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+      <div class="image-card">
+        <img src="A_1.2.3.png" 
+           alt="Gaussian Blur" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label">
+          Gaussian Blur for $t=0.75$
+        </span>
+      </div>
+    </div>
+    
+
+    <h3 class="section-subtitle">1.3 One-Step Denoising with Flow Model</h3>
+    <div class="writeup">
+      <p>
+        Using the pretrained flow model velocity prediction $v_\theta(x_t, t, c)$ with prompt <em>"a high quality photo"</em>, we extrapolate directly to the clean endpoint in a single step:
+      </p>
+      <p style="text-align: center; margin: 15px 0;">
+        $$\widehat{x}_1 = x_t + (1 - t)v_\theta(x_t, t, c)$$
+      </p>
+    </div>
+    <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+      <div class="image-card">
+        <img src="A_1.3.1.png" 
+           alt="One Step" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label">
+          $t=0.25$
+        </span>
+      </div>
+    </div>
+    <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+      <div class="image-card">
+        <img src="A_1.3.2.png" 
+           alt="One Step" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label">
+          $t=0.50$
+        </span>
+      </div>
+    </div>
+    <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+      <div class="image-card">
+        <img src="A_1.3.3.png" 
+           alt="One Step" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label">
+          $t=0.75$
+        </span>
+      </div>
+    </div>
+
+    <h3 class="section-subtitle">1.4 Visualizing Velocity & Error Heatmaps</h3>
+    <div class="writeup">
+      <p>
+        We compare the model's predicted update $(1-t)\widehat{v}_t$ against ground-truth update $(1-t)v_{\text{gt}} = x_1 - x_t$. 
+        The spatial RMS error across RGB channels is calculated as:
+      </p>
+      <p style="text-align: center; margin: 15px 0;">
+        $$E_t = \sqrt{\text{mean}_{\text{RGB}}\left(\left[(1-t)(\widehat{v}_t - v_{\text{gt}})\right]^2\right)}$$
+      </p>
+      <p>
+        The error heatmaps show that prediction errors concentrate along the cat’s contours and in its fur texture, where most of the fine detail lives. 
+        The plain white background has almost no error. Error is largest at t = 0.25 and shrinks as t increases. 
+        At larger t the noisy input already contains most of the image, so the model only has to predict a small remaining update.
+      </p>
+    </div>
+    <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+      <div class="image-card">
+        <img src="A_1.4.1.png" 
+           alt="velocity comparison" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label">
+          $t=0.25$
+        </span>
+      </div>
+    </div>
+    <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+      <div class="image-card">
+        <img src="A_1.4.2.png" 
+           alt="velocity comparison" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label">
+          $t=0.50$
+        </span>
+      </div>
+    </div>
+    <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+      <div class="image-card">
+        <img src="A_1.4.3.png" 
+           alt="velocity comparison" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label">
+          $t=0.75$
+        </span>
+      </div>
+    </div>
+
+    <h3 class="section-subtitle">1.5 Iterative Denoising with Euler Integration</h3>
+    <div class="writeup">
+      <p>
+        Starting from the saved $t = 0.50$ noisy image, I take 25 Euler steps of size $h = 0.02$, recomputing the velocity after every update, until $t = 1.0$:
+      </p>
+      <p style="text-align: center; margin: 15px 0;">
+        $$x_{t+h} = x_t + h \cdot v_\theta(x_t, t, c)$$
+      </p>
+      <p>
+        The first figure shows the initial state, every fifth update (5, 10, 15, 20), and the final image after update 25, each labeled by time. 
+        The background noise fades gradually and the fur detail re-emerges as $t$ approaches 1.
+      </p>
+      <p>
+        The second figure compares the final result with the original image, the one-step estimate (Section 1.3), and the Gaussian blur (Section 1.2), all computed from the same $t = 0.50$ noisy input. 
+        Each panel title gives the MSE to the original. Gaussian blur removes noise but also erases fur and edge detail, leaving a soft, washed-out image. 
+        The one-step estimate is a single straight-line extrapolation from a velocity predicted at a noisy state, so it tends to be smoother in fine textures. 
+        Euler integration re-estimates the velocity after every small step and can follow the curved path, so it tends to commit to sharper detail. 
+        Because the one-step estimate is close to an average over plausible clean images, a lower MSE does not necessarily mean a better-looking result, and the Euler output can differ from the original in fine detail while still looking sharper.
+      </p>
+    </div>
+    <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+      <div class="image-card">
+        <img src="A_1.5.1.png" 
+           alt="Euler sampling trajectory" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label">
+          Euler trajectory from $t=0.50$ to $t=1.00$ (initial state, every fifth update, final)
+        </span>
+      </div>
+    </div>
+    <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+      <div class="image-card">
+        <img src="A_1.5.2.png" 
+           alt="Comparison of denoising methods" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label">
+          Denoising methods on the same $t=0.50$ input: original, noisy input, Gaussian blur, one-step, Euler
+        </span>
+      </div>
+    </div>
+
+    <h3 class="section-subtitle">1.6 Image generation from pure noise</h3>
+    <div class="writeup">
+      <p>
+        Starting from pure Gaussian noise at t = 0 with the generic prompt “a high quality photo”, the model produces human portraits for all five samples, so this prompt favors faces. 
+        However, the quality is inconsistent. Seeds 180, 181, and 183 show distorted anatomy, warped or missing facial features, and odd skin textures, while seeds 182 and 184 are mostly plausible. 
+        Without guidance the samples follow the prompt only loosely, which motivates CFG in Part A2.
+      </p>
+    </div>
+
+    <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+      <div class="image-card">
+        <img src="A_1.6.png" 
+           alt="unconditional image generation" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label">
+          Samples, w = 0
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- PART A SECTION 2: CLASSIFIER-FREE GUIDANCE -->
+  <section id="parta-cfg" class="dark-section">
+    <h2 class="section-title">PART A2: CLASSIFIER-FREE GUIDANCE (CFG)</h2>
+    <div class="writeup">
+      <p>
+        To boost prompt adherence and image quality at the expense of sample diversity, we apply Classifier-Free Guidance (CFG). We compute conditional velocity prediction $v_c$ and unconditional prediction $v_u$ (empty prompt `""`), combining them with weight $w = 7.0$:
+      </p>
+      <p style="text-align: center; margin: 15px 0;">
+        $$v_{\text{cfg}} = v_c + w (v_c - v_u)$$
+      </p>
+      <p>
+        Below are 5 CFG-guided samples ($w = 7$) compared against unguided generation ($w = 0$) using identical initial noise seeds.
+      </p>
+    </div>
+
+    <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+      <div class="image-card">
+        <img src="A_1.7.png" 
+           alt="CFG-guided samples" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label">
+          CFG-guided samples
+        </span>
+      </div>
+    </div>
+    <div class="writeup">
+      <p>
+        Without guidance (w = 0), seeds 180, 181, and 183 produce distorted anatomy: missing facial features and warped skin. 
+        With w = 7, all five seeds are clean, well-lit, frontal portraits, which showcases how the cost is diversity. 
+        The guided samples share a similar composition (centered head-and-shoulders, studio lighting, calm or smiling expression), 
+        while the unguided samples vary more in pose and framing. 
+        CFG trades diversity for quality and prompt adherence.
+      </p>
+    </div>
+  </section>
+
+  <!-- PART A SECTION 3: CREATIVE APPLICATIONS -->
+  <section id="parta-creative">
+    <h2 class="section-title">PART A3: CREATIVE APPLICATIONS</h2>
+
+    <h3 class="section-subtitle">3.1 Image-to-Image Editing (SDEdit)</h3>
+    <div class="writeup">
+      <p>
+        Adding noise up to $t_{start}$ and denoising back to t = 1 projects the image onto the manifold of natural images. 
+        At small $t_{start}$ (0.02–0.06) almost nothing of the input survives, so the model hallucinates unrelated content. 
+        As $t_{start}$ grows toward 0.25–0.50, the layout and fine details return and the result approaches the original.      
+      </p>
+    </div>
+    <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+      <div class="image-card">
+        <img src="A_3.1_Campanile.png" 
+           alt="Campanile" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label">
+          Campanile, prompt: "a photograph of the empire state building"
+        </span>
+      </div>
+    </div>
+    <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+      <div class="image-card">
+        <img src="A_3.1_kitten.png" 
+           alt="Kitten" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label">
+          Kitten, prompt: "a photograph of a coyote"
+        </span>
+      </div>
+    </div>
+    <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+      <div class="image-card">
+        <img src="A_3.1_rumtumtugger.png" 
+           alt="RumTumTugger" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label">
+          RumTumTugger, prompt: "a photograph of a drag queen"
+        </span>
+      </div>
+    </div>
+
+    <div class="writeup">
+      <p>
+        Edits like these work best on non-realistic inputs, because the denoising step has to push them toward natural images. 
+        I ran the same seven starting times on one image from the web and two of my own drawings, using the prompt “a high quality photo”.
+      </p>
+    </div>
+    <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+      <div class="image-card">
+        <img src="A_3.1_abstract.png" 
+           alt="Le Premier Disque" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label">
+           Le Premier Disque by Robert Delaunay
+        </span>
+      </div>
+    </div>
+    <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+      <div class="image-card">
+        <img src="A_3.1_dog.png" 
+           alt="dog" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label">
+          Dog with hat
+        </span>
+      </div>
+    </div>
+    <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+      <div class="image-card">
+        <img src="A_3.1_megamind.png" 
+           alt="Megamind" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label">
+          Megamind
+        </span>
+      </div>
+    </div>
+    <div class="writeup">
+      <p>
+        Across all three, the starting time controls how much of the input is kept. 
+        At $t_{start}$ ≤ 0.06 only coarse color and silhouette survive, and the model reads them as unrelated photographic content. 
+        Around 0.10–0.14 the overall layout returns but the details are reinvented, sometimes badly, as with the hat turning into a screen and Megamind’s face turning into a skull. 
+        By 0.25 the subject is recognizable and the edit mostly adds realism to a drawing’s textures. 
+        At 0.50 little changes. The two drawings needed higher starting times than the painting for their subjects to return, 
+        because flat colors and simple outlines give the model less structure to hold onto.
+      </p>
+    </div>
+    
+
+    <h3 class="section-subtitle">3.2 Text-Guided Image Editing</h3>
+    <div class="writeup">
+      <p>
+        Using the same procedure with a target prompt, $t_{start}$ controls the trade-off between prompt and input. 
+        At very small $t_{start}$ the prompt dominates and the original geometry is lost, for example a free-standing Empire State Building in the Campanile edit (t = 0.02) or a coyote in a new pose in the kitten edit. 
+        At intermediate values (t ≈ 0.10–0.14) the result keeps the input’s overall layout while taking on the prompt’s content, such as a Campanile-shaped tower with Empire State-style texture, or a coyote posed like a kitten. 
+        At t = 0.25 the prompt’s content is still visible (the coyote face, the Empire State texture); by t = 0.50 the result is mostly the original.
+      </p>
+    </div>
+
+    <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+      <div class="image-card">
+        <img src="A_3.2_campanile.png" 
+           alt="Campanile" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label">
+          Campanile to Empire State Building
+        </span>
+      </div>
+    </div>
+    <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+      <div class="image-card">
+        <img src="A_3.2_kitten.png" 
+           alt="Kitten" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label">
+          Kitten to Coyote
+        </span>
+      </div>
+    </div>
+    <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+      <div class="image-card">
+        <img src="A_3.2_rumtumtugger.png" 
+           alt="RumTumTugger" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label">
+          RumTumTugger to Drag Queen 
+        </span>
+      </div>
+    </div>
+
+    <h3 class="section-subtitle">3.3 Visual Anagrams (Optical Illusions)</h3>
+    <div class="writeup">
+      <p>
+        Visual anagrams are created by predicting velocity vector $v_1$ for prompt $p_1$ on $x_t$, and velocity vector $v_2$ for prompt $p_2$ on $x_t$ flipped upside down $180^\circ$. The composite velocity vector $v = \frac{v_1 + \text{flip}(v_2)}{2}$ drives sampling to create dual-view optical illusions:
+      </p>
+    </div>
+
+    <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+      <div class="image-card">
+        <img src="A_3.3_cat.png" 
+           alt="Cat and Venetian Mask" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label">
+          Visual Anagram "Cat" (upright) and "Venetian Mask" (rotated 180 degrees)
+        </span>
+      </div>
+    </div>
+    <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+      <div class="image-card">
+        <img src="A_3.3_man.png" 
+           alt="Lake and Man" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label">    
+          Visual Anagram "Lake" (upright) and "Man" (rotated 180 degrees)
+        </span>
+      </div>
+    </div>
+
+    <h3 class="section-subtitle">3.4 Hybrid Images (Factorized Diffusion)</h3>
+    <div class="writeup">
+      <p>
+        Hybrid images combine low spatial frequencies from velocity prediction $v_1$ (Prompt 1) with high spatial frequencies from $v_2$ (Prompt 2) using Gaussian blurring ($\sigma = 16, k = 265$):
+      </p>
+      <p style="text-align: center; margin: 15px 0;">
+        $$v = f_{\text{lowpass}}(v_1) + f_{\text{highpass}}(v_2)$$
+      </p>
+    </div>
+
+    <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+        <div class="image-card" style="padding: 20px;">
+            <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 25px; width: 100%;">
+            
+            <!-- Full Size Image (Near View) -->
+            <div style="flex: 1; min-width: 280px; text-align: center;">
+                <img src="A_3.4_bear.png" 
+                    alt="Bear and Forest Full Size" 
+                    style="width: 100%; max-width: 500px; aspect-ratio: auto; object-fit: contain;">
+                <span class="shift-subtext" style="display: block; margin-top: 8px;">
+                Near view “[Forest]” (high frequencies)
+                </span>
+            </div>
+
+            <!-- Scaled-Down Thumbnail (Distant View) -->
+            <div style="text-align: center; flex-shrink: 0;">
+                <img src="A_3.4_bear.png" 
+                    alt="Bear and Forest Distant View" 
+                    style="width: 100px; height: 100px; object-fit: contain; border: 1px solid #000; background-color: #000;">
+                <span class="shift-subtext" style="display: block; margin-top: 8px;">
+                Distant view “[Bear]” (low frequencies)
+                </span>
+            </div>
+
+            </div>
+            <span class="label" style="margin-top: 15px;">Bear and Forest</span>
+        </div>
+        </div>
+
+        <!-- HYBRID IMAGE 2: ROSE AND CORRIDOR -->
+        <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+        <div class="image-card" style="padding: 20px;">
+            <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 25px; width: 100%;">
+            
+            <!-- Full Size Image (Near View) -->
+            <div style="flex: 1; min-width: 280px; text-align: center;">
+                <img src="A_3.4_rose.png" 
+                    alt="Rose and Corridor Full Size" 
+                    style="width: 100%; max-width: 500px; aspect-ratio: auto; object-fit: contain;">
+                <span class="shift-subtext" style="display: block; margin-top: 8px;">
+                Near view “[Corridor]” (high frequencies)
+                </span>
+            </div>
+
+            <!-- Scaled-Down Thumbnail (Distant View) -->
+            <div style="text-align: center; flex-shrink: 0;">
+                <img src="A_3.4_rose.png" 
+                    alt="Rose and Corridor Distant View" 
+                    style="width: 100px; height: 100px; object-fit: contain; border: 1px solid #000; background-color: #000;">
+                <span class="shift-subtext" style="display: block; margin-top: 8px;">
+                Distant view “[Rose]” (low frequencies)
+                </span>
+            </div>
+
+            </div>
+            <span class="label" style="margin-top: 15px;">Rose and Corridor</span>
+        </div>
+        </div>
+  </section>
+
+  <!-- PART B SECTION 1: SINGLE-STEP DENOISING UNET -->
+  <section id="partb-unet" class="yellow-section">
+    <h2 class="section-title">PART B1: SINGLE-STEP DENOISING UNET</h2>
+    
+    <h3 class="section-subtitle">1.1 Architecture & Noising Process</h3>
+    <div class="writeup">
+      <p>
+        We construct a UNet architecture comprising ConvBlocks, DownBlocks ($2\times$ downsampling), UpBlocks ($2\times$ upsampling), and skip connections. We train the network to remove noise from images corrupted with $\sigma = 0.5$ additive Gaussian noise ($z = x + \sigma \epsilon$).
+      </p>
+    </div>
+
+    <h3 class="section-subtitle">1.2 Training & Results ($\sigma = 0.5$)</h3>
+    <div class="writeup">
+      <p>
+        The denoiser $D_\theta(z)$ is trained with Adam ($\text{lr}=10^{-4}$, batch size 256, hidden dimension $D = 128$) for 5 epochs with MSE loss $\|D_\theta(z) - x\|^2$. 
+        The loss drops sharply in the first few hundred steps and then plateaus at roughly 0.01. 
+        The figures below show the training loss and the results on the first 10 test digits, using the same noisy inputs ($\sigma = 0.5$) after epoch 1 and epoch 5. 
+        After epoch 1 the denoised digits are already clean and recognizable, and by epoch 5 the strokes are sharper with fewer artifacts.
+      </p>
+    </div>
+    <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+      <div class="image-card">
+        <img src="B_1.2.png" 
+           alt="Noisy MNIST digits across sigmas" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label">
+          Noisy MNIST digits (rows, top to bottom: $\sigma = 0.0, 0.2, 0.4, 0.5, 0.6, 0.8, 1.0$)
+        </span>
+      </div>
+    </div>
+    <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+      <div class="image-card">
+        <img src="B_1.2.1.png" 
+           alt="Training loss" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label">
+          Training loss for $\sigma = 0.5$
+        </span>
+      </div>
+    </div>
+    <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+      <div class="image-card">
+        <img src="B_1.2.1.epoch1.png" 
+           alt="Denoising results after epoch 1" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label">
+          After epoch 1, $\sigma = 0.5$ (rows: clean / noisy input / prediction)
+        </span>
+      </div>
+    </div>
+    <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+      <div class="image-card">
+        <img src="B_1.2.1.epoch5.png" 
+           alt="Denoising results after epoch 5" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label">
+          After epoch 5, $\sigma = 0.5$ (rows: clean / noisy input / prediction)
+        </span>
+      </div>
+    </div>
+
+    <h3 class="section-subtitle">1.2.2 Out-of-Distribution Noise Testing</h3>
+    <div class="writeup">
+      <p>
+        We evaluate the trained denoiser on noise levels it was not trained on ($\sigma_{\text{train}} = 0.5$). 
+        Rows, top to bottom, use $\sigma = 0.0, 0.2, 0.4, 0.5, 0.6, 0.8, 1.0$. 
+        The denoiser works well for $\sigma \le 0.6$ and the digits are recovered cleanly. 
+        At $\sigma = 0.8$ strokes start to break up and distort, and at $\sigma = 1.0$ many digits are unreadable. 
+        Since training only saw $\sigma = 0.5$, the model has no experience with heavier noise and cannot reliably separate signal from noise there.
+      </p>
+    </div>
+    <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+      <div class="image-card">
+        <img src="B_1.2.2.png" 
+           alt="OOD noise level denoising results" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label">
+          Out-of-distribution denoising (rows: $\sigma = 0.0, 0.2, 0.4, 0.5, 0.6, 0.8, 1.0$)
+        </span>
+      </div>
+    </div>
+
+    <h3 class="section-subtitle">1.2.3 Denoising Pure Noise</h3>
+    <div class="writeup">
+      <p>
+        I trained a fresh denoiser (same UNet, $D = 128$, Adam with $\text{lr}=10^{-4}$, batch size 256, 5 epochs) to map pure Gaussian noise to a clean digit with MSE loss. 
+        The input is independent of the target, so the network cannot tell which digit it should output, and the loss-minimizing prediction is the average of all training digits. 
+        After both 1 and 5 epochs, every output is the same blurry, centered, digit-like blob, regardless of the input noise, and it matches the mean image of the training set (shown last). 
+        The loss flattens almost immediately at about 0.07, roughly the average per-pixel variance of MNIST around its mean. 
+        That variance is the irreducible error for an input with no information about the target, so more training cannot lower it.
+      </p>
+    </div>
+    <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+      <div class="image-card">
+        <img src="B_1.2.3.png" 
+           alt="Pure noise training loss" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label">
+          Training loss, pure-noise denoiser
+        </span>
+      </div>
+    </div>
+    <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+      <div class="image-card">
+        <img src="B_1.2.3.2.png" 
+           alt="Pure noise denoising epoch 1" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label">
+          Pure noise denoising, epoch 1
+        </span>
+      </div>
+    </div>
+    <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+      <div class="image-card">
+        <img src="B_1.2.3.3.png" 
+           alt="Pure noise denoising epoch 5" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label">
+          Pure noise denoising, epoch 5
+        </span>
+      </div>
+    </div>
+    <div class="comparison-grid" style="grid-template-columns: 1fr; max-width: 900px; margin: 30px auto;">
+      <div class="image-card">
+        <img src="B_1.2.3.mean.png" 
+           alt="Mean MNIST image" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label">
+          Mean of all MNIST training images
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- PART B SECTION 2: FLOW MATCHING MODEL FROM SCRATCH -->
+  <section id="partb-flow" class="dark-section">
+    <h2 class="section-title">PART B2: FLOW MATCHING FROM SCRATCH</h2>
+
+    <h3 class="section-subtitle">2.1 Time-Conditioned Flow Matching UNet</h3>
+    <div class="writeup">
+      <p>
+        So how exactly do we condition our UNet on $t$? We condition on t using an <code>FCBlock</code> that contains two linear layers and replace the unflattening and <code>up1</code> operations in our original UNet with a modulated unflatten and <code>up1</code> that multiplies by the output of the <code>FCBlock</code>. In this way, we can introduce $t$ to our UNet.
+      </p>
+    </div>
+
+    <h3 class="section-subtitle">2.2 Class-Conditioned UNet & Classifier-Free Guidance</h3>
+    <div class="writeup">
+      <p>
+        To implement the training loop, we first have to implement two algorithms, <code>time_fm_forward</code> and <code>time_fm_sample</code>. <code>time_fm_forward</code> takes in the UNet, samples $t \sim \mathcal{U}[0, 1]$ and $x_0 \sim \mathcal{N}(0, \mathbf{I})$ and computes an intermediary state $x_t = (1-t)x_0 + tx_1$. From there, we make a prediction using the UNet $\text{unet}(x_t, t)$ and compute the MSE of the prediction and ground truth velocity $x_1 - x_0$.
+      </p>
+      <p>
+        To create the training loop, we use the following settings:
+      </p>
+      <ul>
+        <li><strong>Hidden Dimension:</strong> $D = 64$</li>
+        <li><strong>Timesteps:</strong> 50 time steps</li>
+        <li><strong>Learning Rate:</strong> $10^{-2}$ (with exponential decay schedule)</li>
+        <li><strong>Epochs:</strong> 10 training epochs</li>
+        <li><strong>Batch Size:</strong> 64</li>
+      </ul>
+      <p>
+        As we can see from the loss plot, as the number of iterations increases, there is a sharp decline in loss at the beginning, then a relatively flat development period after.
+      </p>
+    </div>
+    <div class="image-card">
+        <img src="B_2.2.png" 
+           alt="" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label">Training loss of the time-conditioned UNet over 10 epochs</span>
+    </div>
+
+    <h3 class="section-subtitle">2.3 Sampling from the Time-conditioned UNet</h3>
+    <div class="writeup">
+      <p>
+        Sampling uses Euler integration, $x_{t+h} = x_t + h·u_θ(x_t, t)$, over num_ts steps. 
+        At epoch 1 most samples aren’t coherent digits. 
+        At epoch 5 many are recognizable (3s, 6s, 7s) with a noticeable number of malformed ones. 
+        By epoch 10 the proportion of legible digits is much higher with fewer artifacts.
+      </p>
+    </div>
+    <div class="comparison-grid grid-4">
+      <div class="image-card">
+        <img src="B_2.3.1.png" alt="">
+        <span class="label">Epoch 1</span>
+      </div>
+      <div class="image-card">
+        <img src="B_2.3.2.png" alt="">
+        <span class="label">Epoch 5</span>
+      </div>
+      <div class="image-card">
+        <img src="B_2.3.3.png" alt="">
+        <span class="label">Epoch 10</span>
+      </div>
+      <span class="label">(num_ts = 50, Euler, exponential LR)</span>
+    </div>
+
+    <h3 class="section-subtitle">2.4 Implementing a Class-Conditioned UNet</h3>
+    <div class="writeup">
+      <p>
+        In this section, we repeat the same procedure as in the previous part, but instead of only conditioning on $t$, we can also condition the model on the class of the number $c$. 
+        We can do this by implementing a modified version of the previous part where we use modulated unflattening/up1 steps by doing:
+      </p>
+      <p style="text-align: center; margin: 15px 0;">
+        $$\text{unflatten}_{\text{mod}} = c_1 \cdot \text{unflatten} + t_1 \quad \text{and} \quad \text{up1}_{\text{mod}} = c_2 \cdot \text{up1} + t_2$$
+      </p>
+      <p>
+        We pass $c$ through the same <code>FCBlock</code> as in 2.1. It is important to note that since $c$ comes in shape $(N,)$, we need to use <code>torch.nn.functional.one_hot(c, num_classes=10)</code> in order to transform it into shape $(N, num_{classes})$ for use in the <code>FCBlock</code>, where it is then turned into shapes $(N, D, 1, 1)$ and $(N, 2D, 1, 1)$.
+      </p>
+      <p>
+        Additionally, according to the spec, we need to implement dropout. Since we want the model to work even without conditioning, we have to pass in some amount of training data (set to 10%) without a class conditioning label (one hot encoding set to 0) manually. We can do this inside of our <code>class_fm_forward</code> method.
+      </p>
+      <p>
+        The class label is one-hot encoded with shape (N, num_classes) and passed through FCBlocks, 
+        giving c1 and t1 with shape (N, 2D, 1, 1) to modulate the unflatten output, and c2 and t2 with shape (N, D, 1, 1) to modulate up1. 
+        I use unflatten_mod = c1·unflatten + t1 and up1_mod = c2·up1 + t2. 
+        To support classifier-free guidance, I zero the one-hot vector for 10% of training samples with a per-sample mask of shape (N,).
+      </p>
+    </div>
+
+    <h3 class="section-subtitle">2.5 Training the Class-Conditioned UNet</h3>
+    <div class="writeup">
+      <p>
+        To implement our training loop, we need to implement the <code>class_fm_forward</code> method. This method is analogous to part 2.2, but includes both an input of the class label while training and a dropout feature where the one-hot encoding is set to 0 10% of the time. We can implement this by creating a mask of shape $(N,)$ with 0 10% of the time and 1 the other 90%.
+      </p>
+    </div>
+    <div class="image-card">
+        <img src="B_2.5.1.png" 
+           alt="" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label"></span>
+    </div>
+    <div class="image-card">
+        <img src="B_2.5.2.png" 
+           alt="" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label"></span>
+    </div>
+
+    <h3 class="section-subtitle">2.6 Sampling from the Class-Conditioned UNet</h3>
+    <div class="writeup">
+      <p>
+        To implement the inference part of our model, we need to implement the <code>class_fm_sample</code> method. This method is analogous to part 2.3, but instead changes the Euler sampling process into using Classifier-Free Guidance (CFG) where:
+      </p>
+      <p style="text-align: center; margin: 15px 0;">
+        $$v_{\text{cfg}} = v_{\text{uncond}} + \gamma (v_{\text{cond}} - v_{\text{uncond}})$$
+      </p>
+      <p>
+        This pushes the flow in the direction toward the class in question (using $\gamma = 5.0$). Below are the results when sampled across 1, 5, and 10 epochs (showing 4 instances of each digit 0–9):
+      </p>
+    </div>
+    <div class="writeup" style="margin-top: 40px;">
+      <p><strong>Ablation: Constant Learning Rate vs. Exponential Scheduler</strong></p>
+      <p>
+        This time around, we also want to compare results with no scheduler and with a scheduler. First, what is a scheduler? When we conduct training with a starting learning rate, we want to shrink the learning rate as we progress through each epoch in order to make more precise and fine adjustments. To do this, our previously used Exponential scheduler used a gamma value of $\gamma = 0.1^{1/\text{num_epochs}}$.
+      </p>
+      <p>
+        Instead of using this, we can simply go ahead and use a constant learning rate of $10^{-3}$, since with a scheduler after 10 epochs the learning rate decays to about $10^{-3}$ as well. To compensate for a lower learning rate at the start, we bumped up the number of epochs from 10 to 15 as well.
+      </p>
+      <p>
+        In the end, the constant learning rate kept the same performance. Its epoch 1 samples are already cleaner than the scheduled run's, and by epoch 10 the two runs look comparable, so the extra five epochs made little visible difference.
+      </p>
+    </div>
+    <div class="image-card">
+        <img src="B_2.6.1.png" 
+           alt="" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label"></span>
+    </div>
+    <div class="image-card">
+        <img src="B_2.6.2.png" 
+           alt="" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label"></span>
+    </div>
+    <div class="image-card">
+        <img src="B_2.6.3.png" 
+           alt="" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label"></span>
+    </div>
+    <div class="image-card">
+        <img src="B_2.6.4.png" 
+           alt="" 
+           style="aspect-ratio: auto; object-fit: contain;">
+        <span class="label"></span>
+    </div>
+
+  </section>
+
+</body>
+</html>
