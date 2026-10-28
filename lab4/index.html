@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CS180 Project 4A: Image Warping and Mosaicing</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+    html { scroll-behavior: smooth; }
+    body { background-color:#fff; color:#000; line-height:1.6; }
+
+    nav { position:sticky; top:0; background:#000; color:#fff; padding:15px 8%; display:flex;
+          justify-content:space-between; align-items:center; z-index:1000; border-bottom:2px solid #333; }
+    nav .logo { font-weight:900; letter-spacing:1px; font-size:1.1rem; }
+    nav .links a { color:#fff; text-decoration:none; margin-left:20px; font-weight:bold; font-size:.9rem;
+                   text-transform:uppercase; transition:color .2s ease; }
+    nav .links a:hover { color:#ffde00; }
+
+    section { padding:60px 8%; display:flex; flex-direction:column; justify-content:center; }
+    .section-title { font-size:clamp(2rem,4.5vw,3.2rem); font-weight:900; text-transform:uppercase;
+                     letter-spacing:2px; line-height:1.15; margin-bottom:20px; }
+    .subsection-title { font-size:clamp(1.3rem,2.5vw,1.8rem); font-weight:800; margin:35px 0 15px 0;
+                        text-transform:uppercase; letter-spacing:1px; border-bottom:2px solid currentColor; padding-bottom:5px; }
+    .set-title { margin-top:25px; text-transform:uppercase; letter-spacing:.5px; }
+    .bg-dark .set-title { color:#ffde00; }
+
+    .writeup { font-size:clamp(.95rem,1.6vw,1.1rem); max-width:1000px; color:inherit; }
+    .writeup p + p { margin-top:14px; }
+    .writeup ul, .writeup ol { margin:15px 0 15px 30px; }
+    .writeup li { margin-bottom:8px; }
+
+    .bg-dark { background-color:#000; color:#fff; }
+    .bg-dark .writeup { color:#ccc; }
+    .bg-dark .image-card { background-color:#111; border:2px solid #333; color:#fff; }
+    .bg-light { background-color:#fff; color:#000; }
+    .bg-yellow { background-color:#ffde00; color:#000; }
+    .bg-yellow .writeup { color:#111; }
+
+    .full-width-figure { margin:20px 0; width:100%; background-color:#f9f9f9; padding:15px; border:2px solid #000;
+                         border-radius:4px; box-shadow:0 4px 6px rgba(0,0,0,.05); text-align:center; }
+    .bg-dark .full-width-figure { background-color:#111; border-color:#333; }
+    .full-width-figure img { width:100%; height:auto; max-height:500px; object-fit:contain; display:block; margin:0 auto; }
+    .full-width-figure .label, .image-card .label { margin-top:10px; font-weight:bold; font-size:.85rem;
+                         text-transform:uppercase; letter-spacing:.5px; text-align:center; }
+
+    .comparison-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px; margin:25px 0; width:100%; }
+    .image-card { display:flex; flex-direction:column; align-items:center; justify-content:center; background-color:#f9f9f9;
+                  padding:12px; border:2px solid #000; border-radius:4px; box-shadow:0 4px 6px rgba(0,0,0,.05); }
+    .image-card img { width:100%; max-height:400px; object-fit:contain; display:block; border-radius:2px; }
+
+    pre { background-color:#1e1e1e; color:#d4d4d4; padding:18px; border-radius:6px; overflow-x:auto;
+          font-family:'Consolas','Courier New',Courier,monospace; font-size:.88rem; margin:20px 0;
+          border:1px solid #333; line-height:1.45; }
+    code { font-family:'Consolas','Courier New',Courier,monospace; background-color:rgba(150,150,150,.15);
+           padding:2px 5px; border-radius:3px; font-size:.9em; }
+    pre code { background-color:transparent; padding:0; }
+
+    table { border-collapse:collapse; margin:20px 0; }
+    th, td { border:2px solid #000; padding:8px 18px; text-align:center; }
+    th { background:#000; color:#fff; text-transform:uppercase; letter-spacing:.5px; font-size:.85rem; }
+    td:first-child { text-align:left; font-weight:bold; }
+
+    .highlight-box { margin-top:30px; padding:20px; border-left:5px solid #ffde00; background-color:rgba(255,222,0,.08);
+                     border-radius:0 4px 4px 0; }
+    .bg-dark .highlight-box { background-color:#111; }
+
+    @media (max-width:768px) {
+      section { padding:40px 5%; }
+      nav { flex-direction:column; gap:10px; }
+      nav .links a { margin:0 8px; }
+      .comparison-grid { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+
+    <nav>
+      <div class="logo">CS180/280A: PROJECT 4A</div>
+      <div class="links">
+        <a href="#a1">A.1</a>
+        <a href="#a2">A.2</a>
+        <a href="#a3">A.3</a>
+        <a href="#a4">A.4</a>
+        <a href="#learnings">Takeaways</a>
+      </div>
+    </nav>
+
+    <!-- HEADER -->
+    <section class="bg-dark">
+        <h1 class="section-title">PROJECT 4A:<br>IMAGE WARPING &amp; MOSAICING</h1>
+        <div class="writeup">
+            <p>In this project I register photographs taken from a fixed center of projection using homographies, warp them
+            with my own inverse-warping code, and blend them into mosaics. I did not use <code>cv2.findHomography</code>,
+            <code>cv2.warpPerspective</code>, <code>skimage.transform.warp</code>, or similar high-level functions.</p>
+        </div>
+    </section>
+
+    <!-- A.1 -->
+    <section id="a1" class="bg-light">
+        <h2 class="section-title">A.1: SHOOT THE PICTURES</h2>
+        <div class="writeup">
+            <p>I shot each set by keeping the camera in place and rotating it, so that the images are related by a projective transform.
+            Each pair has roughly 40-70% overlap.</p>
+        </div>
+        <h4 class="set-title">Set 1: V&amp;A Cafe</h4>
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="4A-1A.jpg" alt="Set 1 left">
+                <span class="label">Left</span>
+            </div>
+            <div class="image-card">
+                <img src="4A-1F.jpg" alt="Set 1 right">
+                <span class="label">Right</span>
+            </div>
+        </div>
+        <h4 class="set-title">Set 2: Bedroom</h4>
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="4A-2B.jpg" alt="Set 2 left">
+                <span class="label">Left</span>
+            </div>
+            <div class="image-card">
+                <img src="4A-2C.jpg" alt="Set 2 right">
+                <span class="label">Right</span>
+            </div>
+        </div>
+        <h4 class="set-title">Set 3: Rooftop</h4>
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="4A-3A.jpg" alt="Set 3 left">
+                <span class="label">Left</span>
+            </div>
+            <div class="image-card">
+                <img src="4A-3B.jpg" alt="Set 3 right">
+                <span class="label">Right</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- A.2 -->
+    <section id="a2" class="bg-dark">
+        <h2 class="section-title">A.2: RECOVER HOMOGRAPHIES</h2>
+        <div class="writeup">
+            <p>A homography maps a point <code>p = (x, y, 1)</code> in image 1 to <code>p' = Hp</code> in image 2, where <code>H</code> is 3&times;3
+            with 8 degrees of freedom (I fix <code>H[2][2] = 1</code>). Writing out <code>p' = (x', y')</code> after dividing by the third coordinate
+            and rearranging, each correspondence gives two linear equations in the unknowns <code>h = [a, b, c, d, e, f, g, h]</code>:</p>
+            <pre>
+x*a + y*b + c            - x*x'*g - y*x'*h = x'
+            x*d + y*e + f - x*y'*g - y*y'*h = y'
+</pre>
+            <p>Stacking <code>n</code> correspondences gives <code>Ah = b</code> with <code>A</code> of size 2n&times;8. With
+            n &gt; 4 the system is overdetermined, so I solve it with least squares (<code>np.linalg.lstsq</code>) to be robust to click noise.
+            I clicked 8 points per pair.</p>
+        </div>
+
+        <h3 class="subsection-title">Correspondences</h3>
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="set1_corr.png" alt="Set 1 correspondences">
+                <span class="label">Set 1</span>
+            </div>
+            <div class="image-card">
+                <img src="set2_corr.png" alt="Set 2 correspondences">
+                <span class="label">Set 2</span>
+            </div>
+            <div class="image-card">
+                <img src="set3_corr.png" alt="Set 3 correspondences">
+                <span class="label">Set 3</span>
+            </div>
+        </div>
+
+        <h3 class="subsection-title">System of Equations and Recovered H</h3>
+        <div class="writeup">
+            <p><strong>Set 1:</strong></p>
+            <pre>
+A =
+ [[    740.891     334.175       1.          0.          0.          0.    -286510.924 -129229.409]
+ [      0.          0.          0.        740.891     334.175       1.     -23248.831  -10486.276]
+ [    725.292     432.354       1.          0.          0.          0.    -225242.196 -134269.311]
+ [      0.          0.          0.        725.292     432.354       1.    -274318.736 -163524.368]
+ [    761.995     439.695       1.          0.          0.          0.    -334525.199 -193031.613]
+ [      0.          0.          0.        761.995     439.695       1.    -303582.209 -175176.53 ]
+ [    754.654     521.358       1.          0.          0.          0.    -303604.927 -209747.582]
+ [      0.          0.          0.        754.654     521.358       1.    -491771.846 -339744.011]
+ [    813.378     454.376       1.          0.          0.          0.    -495899.741 -277023.593]
+ [      0.          0.          0.        813.378     454.376       1.    -365847.865 -204372.944]
+ [    810.625     493.831       1.          0.          0.          0.    -477857.891 -291109.942]
+ [      0.          0.          0.        810.625     493.831       1.    -469485.495 -286009.498]
+ [    680.332     362.62        1.          0.          0.          0.    -102660.566  -54718.535]
+ [      0.          0.          0.        680.332     362.62        1.     -73161.001  -38995.136]
+ [    765.665     394.734       1.          0.          0.          0.    -361428.125 -186332.326]
+ [      0.          0.          0.        765.665     394.734       1.    -189826.984  -97864.281]]
+b = [386.711  31.38  310.554 378.218 439.013 398.405 402.31  651.652 609.679 449.788 589.493 579.165 150.898 107.537 472.045 247.924]
+H =
+ [[    3.644     0.041 -2327.758]
+ [    0.111     3.751 -1310.344]
+ [   -0.        0.001     1.   ]]
+</pre>
+            <p><strong>Set 2:</strong></p>
+            <pre>
+A =
+ [[    1083.142      138.734        1.           0.           0.           0.    -1153318.669  -147723.056]
+ [       0.           0.           0.        1083.142      138.734        1.     -591538.555   -75767.336]
+ [     973.034      133.229        1.           0.           0.           0.     -931617.327  -127558.203]
+ [       0.           0.           0.         973.034      133.229        1.     -521584.265   -71415.966]
+ [    1008.819      135.982        1.           0.           0.           0.    -1002905.292  -135184.595]
+ [       0.           0.           0.        1008.819      135.982        1.     -545394.668   -73515.373]
+ [     946.425      157.086        1.           0.           0.           0.     -883562.115  -146651.853]
+ [       0.           0.           0.         946.425      157.086        1.     -528162.328   -87663.315]
+ [     966.611      186.448        1.           0.           0.           0.     -923693.924  -178169.461]
+ [       0.           0.           0.         966.611      186.448        1.     -568696.12   -109694.649]
+ [     723.457       80.928        1.           0.           0.           0.     -520070.929   -58176.614]
+ [       0.           0.           0.         723.457       80.928        1.     -344653.095   -38553.876]
+ [     566.554      201.129        1.           0.           0.           0.     -314744.983  -111735.629]
+ [       0.           0.           0.         566.554      201.129        1.     -327607.988  -116302.043]
+ [     548.203      243.337        1.           0.           0.           0.     -293483.848  -130271.84 ]
+ [       0.           0.           0.         548.203      243.337        1.     -341643.93   -151649.175]]
+b = [1064.79   546.132  957.435  536.039  994.138  540.627  933.579  558.061  955.6    588.34   718.869  476.397  555.543  578.247  535.357  623.208]
+H =
+ [[  0.897  -0.357  68.394]
+ [  0.045   0.638 371.815]
+ [ -0.     -0.      1.   ]]
+</pre>
+            <p><strong>Set 3:</strong></p>
+            <pre>
+A =
+ [[    520.676     456.211       1.          0.          0.          0.    -115355.779 -101073.653]
+ [      0.          0.          0.        520.676     456.211       1.    -120488.632 -105571.012]
+ [    650.052     452.541       1.          0.          0.          0.    -262715.359 -182892.199]
+ [      0.          0.          0.        650.052     452.541       1.    -158181.41  -110119.736]
+ [    513.909     664.377       1.          0.          0.          0.    -126116.671 -163042.743]
+ [      0.          0.          0.        513.909     664.377       1.    -236808.531 -306144.4  ]
+ [    660.145     643.732       1.          0.          0.          0.    -276486.066 -269611.913]
+ [      0.          0.          0.        660.145     643.732       1.    -284205.269 -277139.196]
+ [    654.124     383.947       1.          0.          0.          0.    -268562.307 -157636.518]
+ [      0.          0.          0.        654.124     383.947       1.    -108155.244  -63483.28 ]
+ [    688.532     408.033       1.          0.          0.          0.    -316805.044 -187742.864]
+ [      0.          0.          0.        688.532     408.033       1.    -141642.438  -83939.184]
+ [    813.263     595.56        1.          0.          0.          0.    -469712.106 -343974.447]
+ [      0.          0.          0.        813.263     595.56        1.    -316545.742 -231809.326]
+ [   1046.382     352.98        1.          0.          0.          0.    -826140.871 -278684.961]
+ [      0.          0.          0.       1046.382     352.98        1.    -196055.555  -66136.099]]
+b = [221.55  231.408 404.145 243.337 245.407 460.799 418.826 430.519 410.568 165.344 460.116 205.716 577.565 389.229 789.522 187.365]
+H =
+ [[   1.683   -0.047 -563.37 ]
+ [   0.242    1.214 -402.559]
+ [   0.001   -0.       1.   ]]
+</pre>
+        </div>
+    </section>
+
+    <!-- A.3 -->
+    <section id="a3" class="bg-light">
+        <h2 class="section-title">A.3: WARP THE IMAGES (RECTIFICATION)</h2>
+        <div class="writeup">
+            <p>I implemented <code>warpImageNearestNeighbor(im, H)</code> and <code>warpImageBilinear(im, H)</code> with inverse warping.
+            The output bounding box is found by pushing the four image corners through <code>H</code>. Then for each output pixel I apply
+            <code>H<sup>-1</sup></code> to find where it came from in the source image, and sample there. Pixels that map outside the source are left empty and
+            tracked in an alpha mask. Nearest neighbor rounds to the closest pixel. Bilinear takes the weighted average of the four surrounding pixels.</p>
+        </div>
+
+        <h4 class="set-title">Rectified Image 1: Poster 1</h4>
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="poster.jpg" alt="Original">
+                <span class="label">Original (with clicked corners)</span>
+            </div>
+            <div class="image-card">
+                <img src="a3_poster_nn.png" alt="Nearest neighbor">
+                <span class="label">Nearest neighbor</span>
+            </div>
+            <div class="image-card">
+                <img src="a3_poster_bilinear.png" alt="Bilinear">
+                <span class="label">Bilinear</span>
+            </div>
+        </div>
+
+        <h4 class="set-title">Rectified Image 2: Poster 2</h4>
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="poster.jpg" alt="Original">
+                <span class="label">Original (with clicked corners)</span>
+            </div>
+            <div class="image-card">
+                <img src="a3_poster1_nn.png" alt="Nearest neighbor">
+                <span class="label">Nearest neighbor</span>
+            </div>
+            <div class="image-card">
+                <img src="a3_poster1_bilinear.png" alt="Bilinear">
+                <span class="label">Bilinear</span>
+            </div>
+        </div>
+
+        <h3 class="subsection-title">Comparison</h3>
+        <table>
+            <tr><th></th><th>Nearest neighbor</th><th>Bilinear</th></tr>
+            <tr><td>Time (s)</td><td>0.032s</td><td>0.076s</td></tr>
+        </table>
+        <div class="writeup">
+            <div class="highlight-box">
+                <p>Nearest neighbor is faster and simple, but it produces jagged, aliased edges, especially along diagonal lines and after
+                heavy magnification. Bilinear is slightly slower because it reads four pixels and blends them per output pixel, but the result is
+                visibly smoother.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- A.4 -->
+    <section id="a4" class="bg-dark">
+        <h2 class="section-title">A.4: BLEND THE IMAGES INTO A MOSAIC</h2>
+        <div class="writeup">
+            <p><strong>Procedure.</strong> I pick one image as the reference and compute a homography from each other image into the reference frame using my
+            <code>computeH</code>. I then compute the final canvas size from all of the warped image corners and warp every image into that canvas
+            in one shot with bilinear inverse warping. To avoid hard seams, I blend using weights from the distance transform: each pixel's weight is
+            its distance to the nearest edge of its source image (normalized to 0-1), so weight falls off toward the borders. I use a two-band blend:
+            low frequencies (Gaussian blurred, &sigma;=15) are combined with the weighted average, while high frequencies
+            are taken from whichever image has the largest weight at that pixel. This reduces ghosting of fine details while keeping smooth transitions.</p>
+        </div>
+
+        <h4 class="set-title">Mosaic 1: V&amp;A Cafe</h4>
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="4A-1A.jpg" alt="Mosaic 1 source 1">
+                <span class="label">Source 1</span>
+            </div>
+            <div class="image-card">
+                <img src="4A-1F.jpg" alt="Mosaic 1 source 2">
+                <span class="label">Source 2</span>
+            </div>
+        </div>
+        <div class="full-width-figure">
+            <img src="mosaic.png" alt="Mosaic 1">
+            <div class="label">Mosaic 1 Result</div>
+        </div>
+
+        <h4 class="set-title">Mosaic 2: Bedroom</h4>
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="4A-2B.jpg" alt="Mosaic 2 source 1">
+                <span class="label">Source 1</span>
+            </div>
+            <div class="image-card">
+                <img src="4A-2C.jpg" alt="Mosaic 2 source 2">
+                <span class="label">Source 2</span>
+            </div>
+        </div>
+        <div class="full-width-figure">
+            <img src="mosaic2.png" alt="Mosaic 2">
+            <div class="label">Mosaic 2 Result</div>
+        </div>
+
+        <h4 class="set-title">Mosaic 3: Rooftop</h4>
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="4A-3A.jpg" alt="Mosaic 3 source 1">
+                <span class="label">Source 1</span>
+            </div>
+            <div class="image-card">
+                <img src="4A-3B.jpg" alt="Mosaic 3 source 2">
+                <span class="label">Source 2</span>
+            </div>
+        </div>
+        <div class="full-width-figure">
+            <img src="mosaic3.png" alt="Mosaic 3">
+            <div class="label">Mosaic 3 Result</div>
+        </div>
+    </section>
+
+    <!-- TAKEAWAYS -->
+    <section id="learnings" class="bg-yellow">
+        <h2 class="section-title">WHAT I LEARNED</h2>
+        <div class="writeup">
+            <p>One thing I noticed was the sensitivity of the homography to click accuracy.
+            It was very difficult to click the points at pixel perfect accuracy, resulting in artifacts in the final output.</p>
+        </div>
+    </section>
+
+</body>
+</html>
