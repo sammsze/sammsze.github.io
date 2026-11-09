@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CS180 Project 4A: Image Warping and Mosaicing</title>
+  <title>CS180 Project 4: Image Warping, Mosaicing and Feature Matching</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
     html { scroll-behavior: smooth; }
@@ -60,6 +60,7 @@
     th { background:#000; color:#fff; text-transform:uppercase; letter-spacing:.5px; font-size:.85rem; }
     td:first-child { text-align:left; font-weight:bold; }
 
+    .todo { background:#ffde00; color:#000; font-weight:bold; padding:0 4px; border-radius:2px; }
     .highlight-box { margin-top:30px; padding:20px; border-left:5px solid #ffde00; background-color:rgba(255,222,0,.08);
                      border-radius:0 4px 4px 0; }
     .bg-dark .highlight-box { background-color:#111; }
@@ -75,23 +76,32 @@
 <body>
 
     <nav>
-      <div class="logo">CS180/280A: PROJECT 4A</div>
+      <div class="logo">CS180/280A: PROJECT 4</div>
       <div class="links">
         <a href="#a1">A.1</a>
         <a href="#a2">A.2</a>
         <a href="#a3">A.3</a>
         <a href="#a4">A.4</a>
-        <a href="#learnings">Takeaways</a>
+        <a href="#learningsA">A Takeaways</a>
+        <a href="#b1">B.1</a>
+        <a href="#b2">B.2</a>
+        <a href="#b3">B.3</a>
+        <a href="#b4">B.4</a>
+        <a href="#b5">B.5</a>
+        <a href="#learningsB">B Takeaways</a>
       </div>
     </nav>
 
     <!-- HEADER -->
     <section class="bg-dark">
-        <h1 class="section-title">PROJECT 4A:<br>IMAGE WARPING &amp; MOSAICING</h1>
+        <h1 class="section-title">PROJECT 4:<br>IMAGE WARPING, MOSAICING &amp; AUTOSTITCHING</h1>
         <div class="writeup">
             <p>In this project I register photographs taken from a fixed center of projection using homographies, warp them
             with my own inverse-warping code, and blend them into mosaics. I did not use <code>cv2.findHomography</code>,
             <code>cv2.warpPerspective</code>, <code>skimage.transform.warp</code>, or similar high-level functions.</p>
+            <p><strong>Part A</strong> builds mosaics from hand-clicked correspondences. <strong>Part B</strong> removes the clicking:
+            I detect Harris corners, select them with adaptive non-maximal suppression, describe them with blurred, bias/gain-normalized 8&times;8 patches,
+            match them with Lowe's ratio test, and estimate the homography with 4-point RANSAC that I wrote from scratch.</p>
         </div>
     </section>
 
@@ -263,7 +273,7 @@ H =
         <div class="comparison-grid">
             <div class="image-card">
                 <img src="poster.jpg" alt="Original">
-                <span class="label">Original (with clicked corners)</span>
+                <span class="label">Original</span>
             </div>
             <div class="image-card">
                 <img src="a3_poster_nn.png" alt="Nearest neighbor">
@@ -279,7 +289,7 @@ H =
         <div class="comparison-grid">
             <div class="image-card">
                 <img src="poster.jpg" alt="Original">
-                <span class="label">Original (with clicked corners)</span>
+                <span class="label">Original</span>
             </div>
             <div class="image-card">
                 <img src="a3_poster1_nn.png" alt="Nearest neighbor">
@@ -367,11 +377,203 @@ H =
     </section>
 
     <!-- TAKEAWAYS -->
-    <section id="learnings" class="bg-yellow">
+    <section id="learningsA" class="bg-yellow">
         <h2 class="section-title">WHAT I LEARNED</h2>
         <div class="writeup">
             <p>One thing I noticed was the sensitivity of the homography to click accuracy.
             It was very difficult to click the points at pixel perfect accuracy, resulting in artifacts in the final output.</p>
+        </div>
+    </section>
+
+    <!-- B.1 -->
+    <section id="b1" class="bg-dark">
+        <h2 class="section-title">B.1: HARRIS CORNERS &amp; ANMS</h2>
+        <div class="writeup">
+            <p>
+                For part B, I use the provided Harris detector harris.py to detect corners automatically.
+                The generated corner map outputs hundreds to thousands of corners that tend to cluster on high-contrast texture.
+                This becomes a problem when stitching, because the overlap between the two images can be quite small, and we want to have features spread over it.
+            </p>
+            <p>
+                Therefore, for every corner <code>i</code> I compute its suppression radius
+            </p>
+            <pre>r_i = min_j |x_i - x_j|   subject to   f(x_i) &lt; 0.9 * f(x_j)</pre>
+            <p>
+                which is basically the distance to the nearest corner that is <em>significantly</em> stronger (<code>c_robust = 0.9</code>).
+                The strongest corner has <code>r = &infin;</code>. 
+                I chose to keep the 1000 corners with the largest <code>r_i</code>.
+                This keeps both strong corners and corners that are far away from anything stronger, ensuring that the selected points are spread evenly across the image.
+            </p>
+        </div>
+        <h4 class="set-title">Set 1: V&amp;A Cafe</h4>
+        <div class="full-width-figure">
+            <img src="partB/set1/b1_corners_0.png" alt="Set 1: all Harris corners (left) vs. 500 corners after ANMS (right)">
+            <div class="label">Set 1: all Harris corners (left) vs. 1000 corners after ANMS (right)</div>
+        </div>
+        <h4 class="set-title">Set 2: Bedroom</h4>
+        <div class="full-width-figure">
+            <img src="partB/set2/b1_corners_0.png" alt="Set 2: all Harris corners (left) vs. 500 corners after ANMS (right)">
+            <div class="label">Set 2: all Harris corners (left) vs. 1000 corners after ANMS (right)</div>
+        </div>
+        <h4 class="set-title">Set 3: Rooftop</h4>
+        <div class="full-width-figure">
+            <img src="partB/set3/b1_corners_0.png" alt="Set 3: all Harris corners (left) vs. 500 corners after ANMS (right)">
+            <div class="label">Set 3: all Harris corners (left) vs. 1000 corners after ANMS (right)</div>
+        </div>
+    </section>
+
+    <!-- B.2 -->
+    <section id="b2" class="bg-light">
+        <h2 class="section-title">B.2: FEATURE DESCRIPTORS</h2>
+        <div class="writeup">
+            <p>
+                Each feature is described by an axis-aligned <strong>8&times;8</strong> patch.
+                This patch is taken from a <strong>40&times;40</strong> window around the corner,
+                blurred with Gaussian (&sigma; = 2) and then every 5th pixel is sampled. 
+                Blurring before subsampling avoids aliasing, making the resulting descriptor a low-frequency summary of a large neighborhood. 
+                This allows it to tolerate localization error (1-3 pixels) of Harris corners.
+                Finally, each descriptor is <strong>bias/gain normalized</strong>,
+                ensuring that changes in brightness such as small exposure differences between photos does not affect it.
+                Corners within 20 pixels of the border are discarded because their window would fall off the image.
+            </p>
+        </div>
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="partB/set1/b2_patch_locations.png" alt="40x40 windows">
+                <span class="label">40&times;40 windows around a few features (Set 1)</span>
+            </div>
+            <div class="image-card">
+                <img src="partB/set1/b2_descriptors.png" alt="Normalized 8x8 descriptors">
+                <span class="label">The resulting normalized 8&times;8 descriptors</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- B.3 -->
+    <section id="b3" class="bg-dark">
+        <h2 class="section-title">B.3: FEATURE MATCHING</h2>
+        <div class="writeup">
+            <p>
+                For each descriptor in image 1, I find its two nearest neighbors in image 2.
+                I cannot just match on the nearest-neighbor distance alone, because the scale of descriptor distances varies a lot from feature to feature.
+                Thus, I use Lowe's ratio test and accept a match only if
+            </p>
+            <pre>d(1-NN) / d(2-NN) &lt; threshold</pre>
+            <p>
+                The logic is that if the first neighbor is truly the correct match, it should be much closer than the second neighbor, which is almost definitely wrong.
+                For a feature where the two distances are similar, the calculated ratio would be near 1, and the match is rejected.
+                Figure 6b of the paper shows that correct matches concentrate at low ratios, so I tried thresholds from 0.6 to 0.8
+                (final values used: 0.8 / 0.6 / 0.6).
+            </p>
+        </div>
+        <h4 class="set-title">Set 1: V&amp;A Cafe</h4>
+        <div class="full-width-figure">
+            <img src="partB/set1/b3_b4_matches_0_1.png" alt="Set 1: ratio-test matches (left) and the RANSAC inliers in green (right)">
+            <div class="label">Set 1: ratio-test matches (left) and the RANSAC inliers in green (right)</div>
+        </div>
+        <h4 class="set-title">Set 2: Bedroom</h4>
+        <div class="full-width-figure">
+            <img src="partB/set2/b3_b4_matches_0_1.png" alt="Set 2: ratio-test matches (left) and the RANSAC inliers in green (right)">
+            <div class="label">Set 2: ratio-test matches (left) and the RANSAC inliers in green (right)</div>
+        </div>
+        <h4 class="set-title">Set 3: Rooftop</h4>
+        <div class="full-width-figure">
+            <img src="partB/set3/b3_b4_matches_0_1.png" alt="Set 3: ratio-test matches (left) and the RANSAC inliers in green (right)">
+            <div class="label">Set 3: ratio-test matches (left) and the RANSAC inliers in green (right)</div>
+        </div>
+        <div class="writeup">
+            <div class="highlight-box">
+                <p>
+                    The ratio test kept most of the correct matches, but some wrong ones (marked by red lines on the left of each figure) still slipped through.
+                    These are mostly caused by repeated structures in the image, so I will apply RANSAC next to conduct a geometric check.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- B.4 -->
+    <section id="b4" class="bg-light">
+        <h2 class="section-title">B.4: RANSAC &amp; AUTOMATIC MOSAICS</h2>
+        <div class="writeup">
+            <p>
+                I fit <code>H</code> with <strong>4-point RANSAC</strong>:
+            </p>
+            <pre>
+repeat 5000 times:
+    pick 4 random correspondences
+    compute the exact homography H from those 4 pairs
+    inliers = { i : |H * p_i - p'_i| &lt; 3 px }
+    keep H if it has the most inliers so far
+refit H with least squares on ALL inliers of the best model
+            </pre>
+            <p>
+                Each homography is computed with the same DLT formulation as Part A,
+                with the point coordinates normalized (centered, mean distance &radic;2).
+                The final refit on all inliers gives a more accurate estimate.
+                The estimated homographies are then used with bilinear warping and distance-transform blending from Part A to produce the mosaics.
+            </p>
+        </div>
+
+        <table>
+            <tr><th></th><th>Ratio-test matches</th><th>RANSAC inliers</th></tr>
+            <tr><td>Set 1: V&amp;A Cafe</td><td>56</td><td>5</td></tr>
+            <tr><td>Set 2: Bedroom</td><td>76</td><td>41</td></tr>
+            <tr><td>Set 3: Rooftop</td><td>36</td><td>19</td></tr>
+        </table>
+
+        <h3 class="subsection-title">Manual vs. Automatic Stitching</h3>
+        <h4 class="set-title">Mosaic 1: V&amp;A Cafe</h4>
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="mosaic.png" alt="Manual mosaic 1">
+                <span class="label">Manual (Part A, clicked points)</span>
+            </div>
+            <div class="image-card">
+                <img src="partB/set1/b4_auto_mosaic.png" alt="Automatic mosaic 1">
+                <span class="label">Automatic (Part B, RANSAC)</span>
+            </div>
+        </div>
+        <h4 class="set-title">Mosaic 2: Bedroom</h4>
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="mosaic2.png" alt="Manual mosaic 2">
+                <span class="label">Manual (Part A, clicked points)</span>
+            </div>
+            <div class="image-card">
+                <img src="partB/set2/b4_auto_mosaic.png" alt="Automatic mosaic 2">
+                <span class="label">Automatic (Part B, RANSAC)</span>
+            </div>
+        </div>
+        <h4 class="set-title">Mosaic 3: Rooftop</h4>
+        <div class="comparison-grid">
+            <div class="image-card">
+                <img src="mosaic3.png" alt="Manual mosaic 3">
+                <span class="label">Manual (Part A, clicked points)</span>
+            </div>
+            <div class="image-card">
+                <img src="partB/set3/b4_auto_mosaic.png" alt="Automatic mosaic 3">
+                <span class="label">Automatic (Part B, RANSAC)</span>
+            </div>
+        </div>
+        <div class="writeup">
+            <div class="highlight-box">
+                <p>
+                    The alignment for the automated mosaic is more accurate in that the edges lined up. This could be because my manual selections were not consistent between the two images.
+                    However, there is more ghosting compared to the manual one. 
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- TAKEAWAYS -->
+    <section id="learningsB" class="bg-yellow">
+        <h2 class="section-title">WHAT I LEARNED</h2>
+        <div class="writeup">
+            <p>
+                I learnt that the blurred 40&times;40 descriptor makes the matching more tolerant to small localization errors.
+                Additionally, the ratio test is more effective than the fixed distance threshold, and RANSAC improves the
+                reliability overall by removing any incorrect matches that slip through the ratio test. 
+            </p>
         </div>
     </section>
 
